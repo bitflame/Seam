@@ -36,42 +36,37 @@ public class SeamCarver {
 
     // energy of pixel at column x and row y
     public double energy(int x, int y) {
-        Color currentPixlColor = currentPicture.get(x, y);
-        int rgb = currentPicture.getRGB(x, y);
-        double red = currentPixlColor.getRed();
-        double green = currentPixlColor.getGreen();
-        double blue = currentPixlColor.getBlue();
-        System.out.printf("%f %f %f \n", red, green, blue);
-        int rgbBlue = (rgb >> 0) & 0xFF;
-        int rgbGreen = (rgb >> 8) & 0xFF;
-        int rgbRed = (rgb >> 16) & 0xFF;
-        System.out.printf("%d %d %d \n", rgbRed, rgbGreen, rgbBlue);
-        return -1;
+        System.out.printf("Here is the value before square root: %f\n", calculateHorizontalEnergy(x, y) + calculateVerticalEnergy(x, y));
+        return Math.sqrt(calculateHorizontalEnergy(x, y) + calculateVerticalEnergy(x, y));
+    }
+
+    private int setRGB(int blue, int green, int red) {
+        return (red << 16) + (green << 8) + (blue << 0);
     }
 
     private double calculateHorizontalEnergy(int x, int y) {
 // (x-1, y),  ( x+1, y)
-        Color v = currentPicture.get(x - 1, y);
-        double vRed = v.getRed();
-        double vGreen = v.getGreen();
-        double vBlue = v.getBlue();
-        Color w = currentPicture.get(x + 1, y);
-        double wRed = w.getRed();
-        double wGreen = w.getGreen();
-        double wBlue = w.getBlue();
+        int vRgb = currentPicture.getRGB(x - 1, y);
+        int vBlue = (vRgb >> 0) & 0xFF;
+        int vGreen = (vRgb >> 8) & 0xFF;
+        int vRed = (vRgb >> 16) & 0xFF;
+        int wRgb = currentPicture.getRGB(x + 1, y);
+        int wBlue = (wRgb >> 0) & 0xFF;
+        int wGreen = (wRgb >> 8) & 0xFF;
+        int wRed = (wRgb >> 16) & 0xFf;
         return Math.pow(Math.abs(vRed - wRed), 2) + Math.pow(Math.abs(vGreen - wGreen), 2) + Math.pow(Math.abs(vBlue - wBlue), 2);
     }
 
     private double calculateVerticalEnergy(int x, int y) {
 // v = (x, y-1),  w = (x, y+1)
-        Color v = currentPicture.get(x, y - 1);
-        double vRed = v.getRed();
-        double vGreen = v.getGreen();
-        double vBlue = v.getBlue();
-        Color w = currentPicture.get(x, y + 1);
-        double wRed = w.getRed();
-        double wGreen = w.getGreen();
-        double wBlue = w.getBlue();
+        int vRgb = currentPicture.getRGB(x, y - 1);
+        int vBlue = (vRgb >> 0) & 0xFF;
+        int vGreen = (vRgb >> 8) & 0xFF;
+        int vRed = (vRgb >> 16) & 0xFF;
+        int wRgb = currentPicture.getRGB(x, y + 1);
+        int wBlue = (wRgb >> 0) & 0xFF;
+        int wGreen = (wRgb >> 8) & 0xFF;
+        int wRed = (wRgb >> 16) & 0xFF;
         return Math.pow(Math.abs(vRed - wRed), 2) + Math.pow(Math.abs(vGreen - wGreen), 2) + Math.pow(Math.abs(vBlue - wBlue), 2);
     }
 
@@ -80,7 +75,7 @@ public class SeamCarver {
         File pic = new File("seam/3x4.png");
         Picture picture = new Picture(pic);
         SeamCarver seamCarver = new SeamCarver(picture);
-        seamCarver.energy(1, 2);
+        System.out.printf("%f\n", seamCarver.energy(1, 2));
     }
 
 }
