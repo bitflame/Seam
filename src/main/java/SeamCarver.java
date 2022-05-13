@@ -1,8 +1,8 @@
 
+
 import edu.princeton.cs.algs4.Picture;
 
 
-import java.awt.Color;
 import java.io.File;
 
 public class SeamCarver {
@@ -12,11 +12,13 @@ public class SeamCarver {
     int height;
     int width;
 
+
     public SeamCarver(Picture picture) {
         if (picture == null) throw new IllegalArgumentException("picture object is null.");
         currentPicture = new Picture(picture);
         height = picture.height();
         width = picture.width();
+
     }
 
     // current picture
@@ -40,9 +42,27 @@ public class SeamCarver {
             throw new IllegalArgumentException("x coordinate is not a valid value for this image.");
         if (y > height - 1 || y < 0)
             throw new IllegalArgumentException("y coordinate is not a valid value for this image.");
-        System.out.printf("Here is the value before taking the square root: %f for %d and %d\n", calculateHorizontalEnergy(x, y) +
-                calculateVerticalEnergy(x, y), x, y);
+//        System.out.printf("Here is the value before taking the square root: %f for %d and %d\n", calculateHorizontalEnergy(x, y) +
+//                calculateVerticalEnergy(x, y), x, y);
+        if (x == 0 || y == 0 || x == width-1 || y == height-1) return (1000);
         return Math.sqrt(calculateHorizontalEnergy(x, y) + calculateVerticalEnergy(x, y));
+    }
+
+    public int[] findHorizontalSeam() {
+        int[][] energy = new int[height][width];
+        int[][] distTo = new int[height][width];
+        int[][] edgeTo = new int[height][width];
+        int[] horizontalSeam = new int[width];
+        return horizontalSeam;
+    }
+
+    // sequence of indices for vertical seam
+    public int[] findVerticalSeam() {
+        int[][] energy = new int[height][width];
+        int[][] distTo = new int[height][width];
+        int[][] edgeTo = new int[height][width];
+        int[] verticalSeam = new int[height];
+        return verticalSeam;
     }
 
     // remove horizontal seam from current picture
@@ -59,12 +79,8 @@ public class SeamCarver {
             throw new IllegalArgumentException("Can not carve any more vertical seams; image width is 1 pixel.");
     }
 
-    private int setRGB(int blue, int green, int red) {
-        return (red << 16) + (green << 8) + (blue << 0);
-    }
-
     private double calculateHorizontalEnergy(int x, int y) {
-// (x-1, y),  ( x+1, y)
+// (x-1, y),  ( x+1, y) - getRGB() has a companion called setRGB() (0, y), and (x, 0) is 1000
         int vRgb = currentPicture.getRGB(x - 1, y);
         int vBlue = (vRgb >> 0) & 0xFF;
         int vGreen = (vRgb >> 8) & 0xFF;
@@ -78,6 +94,7 @@ public class SeamCarver {
 
     private double calculateVerticalEnergy(int x, int y) {
 // v = (x, y-1),  w = (x, y+1)
+
         int vRgb = currentPicture.getRGB(x, y - 1);
         int vBlue = (vRgb >> 0) & 0xFF;
         int vGreen = (vRgb >> 8) & 0xFF;
@@ -91,11 +108,14 @@ public class SeamCarver {
 
     //  unit testing (optional)
     public static void main(String[] args) {
-        File pic = new File("seam/3x4.png");
+        File pic = new File("libs/seam/3x4.png");
         Picture picture = new Picture(pic);
         SeamCarver seamCarver = new SeamCarver(picture);
         System.out.printf("The energy level for pixel (%d, %d) is: %f\n", 1, 2, seamCarver.energy(1, 2));
         System.out.printf("The energy level for pixel (%d, %d) is: %f\n", 1, 1, seamCarver.energy(1, 1));
+        // 255, 203, 51 color values for 2,0
+        double x = Math.sqrt(Math.pow(255, 2) + Math.pow(203, 2) + Math.pow(51, 2));
+        System.out.printf("%f\n", x);
     }
 
 }
