@@ -36,8 +36,27 @@ public class SeamCarver {
 
     // energy of pixel at column x and row y
     public double energy(int x, int y) {
-        System.out.printf("Here is the value before square root: %f\n", calculateHorizontalEnergy(x, y) + calculateVerticalEnergy(x, y));
+        if (x > width - 1 || x < 0)
+            throw new IllegalArgumentException("x coordinate is not a valid value for this image.");
+        if (y > height - 1 || y < 0)
+            throw new IllegalArgumentException("y coordinate is not a valid value for this image.");
+        System.out.printf("Here is the value before taking the square root: %f for %d and %d\n", calculateHorizontalEnergy(x, y) +
+                calculateVerticalEnergy(x, y), x, y);
         return Math.sqrt(calculateHorizontalEnergy(x, y) + calculateVerticalEnergy(x, y));
+    }
+
+    // remove horizontal seam from current picture
+    public void removeHorizontalSeam(int[] seam) {
+        if (seam == null) throw new IllegalArgumentException("The seam object is invalid.");
+        if (this.height == 1)
+            throw new IllegalArgumentException("Can not carve any more horizontal seams; image height is 1 pixel.");
+    }
+
+    // remove vertical seam from current picture
+    public void removeVerticalSeam(int[] seam) {
+        if (seam == null) throw new IllegalArgumentException("The seam object is invalid.");
+        if (this.width == 1)
+            throw new IllegalArgumentException("Can not carve any more vertical seams; image width is 1 pixel.");
     }
 
     private int setRGB(int blue, int green, int red) {
@@ -54,7 +73,7 @@ public class SeamCarver {
         int wBlue = (wRgb >> 0) & 0xFF;
         int wGreen = (wRgb >> 8) & 0xFF;
         int wRed = (wRgb >> 16) & 0xFf;
-        return Math.pow(Math.abs(vRed - wRed), 2) + Math.pow(Math.abs(vGreen - wGreen), 2) + Math.pow(Math.abs(vBlue - wBlue), 2);
+        return Math.pow(wRed - vRed, 2) + Math.pow(wGreen - vGreen, 2) + Math.pow(wBlue - vBlue, 2);
     }
 
     private double calculateVerticalEnergy(int x, int y) {
@@ -67,7 +86,7 @@ public class SeamCarver {
         int wBlue = (wRgb >> 0) & 0xFF;
         int wGreen = (wRgb >> 8) & 0xFF;
         int wRed = (wRgb >> 16) & 0xFF;
-        return Math.pow(Math.abs(vRed - wRed), 2) + Math.pow(Math.abs(vGreen - wGreen), 2) + Math.pow(Math.abs(vBlue - wBlue), 2);
+        return Math.pow(wRed - vRed, 2) + Math.pow(wGreen - vGreen, 2) + Math.pow(wBlue - vBlue, 2);
     }
 
     //  unit testing (optional)
@@ -75,7 +94,8 @@ public class SeamCarver {
         File pic = new File("seam/3x4.png");
         Picture picture = new Picture(pic);
         SeamCarver seamCarver = new SeamCarver(picture);
-        System.out.printf("%f\n", seamCarver.energy(1, 2));
+        System.out.printf("The energy level for pixel (%d, %d) is: %f\n", 1, 2, seamCarver.energy(1, 2));
+        System.out.printf("The energy level for pixel (%d, %d) is: %f\n", 1, 1, seamCarver.energy(1, 1));
     }
 
 }
