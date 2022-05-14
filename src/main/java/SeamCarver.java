@@ -4,6 +4,8 @@ import edu.princeton.cs.algs4.Picture;
 
 
 import java.io.File;
+import java.math.BigDecimal;
+import java.math.MathContext;
 
 public class SeamCarver {
     // I wonder if we can use the values at the borders
@@ -44,8 +46,21 @@ public class SeamCarver {
             throw new IllegalArgumentException("y coordinate is not a valid value for this image.");
 //        System.out.printf("Here is the value before taking the square root: %f for %d and %d\n", calculateHorizontalEnergy(x, y) +
 //                calculateVerticalEnergy(x, y), x, y);
-        if (x == 0 || y == 0 || x == width-1 || y == height-1) return (1000);
+        if (x == 0 || y == 0 || x == width - 1 || y == height - 1) return (1000);
         return Math.sqrt(calculateHorizontalEnergy(x, y) + calculateVerticalEnergy(x, y));
+    }
+
+    private static double squareRoot(double number) {
+        double t;
+
+        double squareroot = number / 2;
+
+        do {
+            t = squareroot;
+            squareroot = (t + (number / t)) / 2;
+        } while ((t - squareroot) != 0);
+
+        return squareroot;
     }
 
     public int[] findHorizontalSeam() {
@@ -80,7 +95,7 @@ public class SeamCarver {
     }
 
     private double calculateHorizontalEnergy(int x, int y) {
-// (x-1, y),  ( x+1, y) - getRGB() has a companion called setRGB() (0, y), and (x, 0) is 1000
+        // (x-1, y),  ( x+1, y) - getRGB() has a companion called setRGB() (0, y), and (x, 0) is 1000
         int vRgb = currentPicture.getRGB(x - 1, y);
         int vBlue = (vRgb >> 0) & 0xFF;
         int vGreen = (vRgb >> 8) & 0xFF;
@@ -90,11 +105,11 @@ public class SeamCarver {
         int wGreen = (wRgb >> 8) & 0xFF;
         int wRed = (wRgb >> 16) & 0xFf;
         return Math.pow(wRed - vRed, 2) + Math.pow(wGreen - vGreen, 2) + Math.pow(wBlue - vBlue, 2);
+        // return (wRed - vRed) + (wGreen - vGreen) + (wBlue - vBlue);
     }
 
     private double calculateVerticalEnergy(int x, int y) {
-// v = (x, y-1),  w = (x, y+1)
-
+        // v = (x, y-1),  w = (x, y+1)
         int vRgb = currentPicture.getRGB(x, y - 1);
         int vBlue = (vRgb >> 0) & 0xFF;
         int vGreen = (vRgb >> 8) & 0xFF;
@@ -104,6 +119,7 @@ public class SeamCarver {
         int wGreen = (wRgb >> 8) & 0xFF;
         int wRed = (wRgb >> 16) & 0xFF;
         return Math.pow(wRed - vRed, 2) + Math.pow(wGreen - vGreen, 2) + Math.pow(wBlue - vBlue, 2);
+        // return (wRed - vRed) + (wGreen - vGreen) + (wBlue - vBlue);
     }
 
     //  unit testing (optional)
