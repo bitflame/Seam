@@ -105,7 +105,6 @@ public class SeamCarver {
         int wGreen = (wRgb >> 8) & 0xFF;
         int wRed = (wRgb >> 16) & 0xFf;
         return Math.pow(wRed - vRed, 2) + Math.pow(wGreen - vGreen, 2) + Math.pow(wBlue - vBlue, 2);
-        // return (wRed - vRed) + (wGreen - vGreen) + (wBlue - vBlue);
     }
 
     private double calculateVerticalEnergy(int x, int y) {
