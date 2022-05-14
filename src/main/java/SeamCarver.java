@@ -4,8 +4,6 @@ import edu.princeton.cs.algs4.Picture;
 
 
 import java.io.File;
-import java.math.BigDecimal;
-import java.math.MathContext;
 
 public class SeamCarver {
     // I wonder if we can use the values at the borders
@@ -20,7 +18,6 @@ public class SeamCarver {
         currentPicture = new Picture(picture);
         height = picture.height();
         width = picture.width();
-
     }
 
     // current picture
@@ -50,33 +47,38 @@ public class SeamCarver {
         return Math.sqrt(calculateHorizontalEnergy(x, y) + calculateVerticalEnergy(x, y));
     }
 
-    private static double squareRoot(double number) {
-        double t;
-
-        double squareroot = number / 2;
-
-        do {
-            t = squareroot;
-            squareroot = (t + (number / t)) / 2;
-        } while ((t - squareroot) != 0);
-
-        return squareroot;
-    }
-
     public int[] findHorizontalSeam() {
-        int[][] energy = new int[height][width];
+        double[][] energy = new double[height][width];
+        double currentCellEnergy = 0;
         int[][] distTo = new int[height][width];
         int[][] edgeTo = new int[height][width];
         int[] horizontalSeam = new int[width];
+        /* I really don't see why I need this now
+        for(int i=0; i<width; i++)
+            for(int j=0; j<height; j++){
+                // infinity value in double
+                energy[i][j]=Double.POSITIVE_INFINITY;
+            }
+        */
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++) {
+                // infinity value in double
+                energy[i][j] = energy(i, j);
+            }
+// from step 3 of possible progress steps: Your algorithm can traverse this matrix treating some select
+// entries as reachable from (x, y) to calculate where the seam is located. Reachable are (x-1, y+1), (x, y+1), (x+1, y+1)
+// for each row keep the minimum of energy(x, y) + the energy of a reachable. i.e. only add the value of a cell to the
+// horizontalSeam [] if its value is less than a previous cell
         return horizontalSeam;
     }
 
     // sequence of indices for vertical seam
     public int[] findVerticalSeam() {
-        int[][] energy = new int[height][width];
+        double[][] energy = new double[height][width];
         int[][] distTo = new int[height][width];
         int[][] edgeTo = new int[height][width];
         int[] verticalSeam = new int[height];
+
         return verticalSeam;
     }
 
@@ -94,7 +96,7 @@ public class SeamCarver {
             throw new IllegalArgumentException("Can not carve any more vertical seams; image width is 1 pixel.");
     }
 
-    private double calculateHorizontalEnergy(int x, int y) {
+    private int calculateHorizontalEnergy(int x, int y) {
         // (x-1, y),  ( x+1, y) - getRGB() has a companion called setRGB() (0, y), and (x, 0) is 1000
         int vRgb = currentPicture.getRGB(x - 1, y);
         int vBlue = (vRgb >> 0) & 0xFF;
@@ -104,10 +106,11 @@ public class SeamCarver {
         int wBlue = (wRgb >> 0) & 0xFF;
         int wGreen = (wRgb >> 8) & 0xFF;
         int wRed = (wRgb >> 16) & 0xFf;
-        return Math.pow(wRed - vRed, 2) + Math.pow(wGreen - vGreen, 2) + Math.pow(wBlue - vBlue, 2);
+        return (int) Math.pow(wRed - vRed, 2) + (int) Math.pow(wGreen - vGreen, 2) + (int) Math.pow(wBlue - vBlue, 2);
+        // return (wRed - vRed) + (wGreen - vGreen) + (wBlue - vBlue);
     }
 
-    private double calculateVerticalEnergy(int x, int y) {
+    private int calculateVerticalEnergy(int x, int y) {
         // v = (x, y-1),  w = (x, y+1)
         int vRgb = currentPicture.getRGB(x, y - 1);
         int vBlue = (vRgb >> 0) & 0xFF;
@@ -117,7 +120,7 @@ public class SeamCarver {
         int wBlue = (wRgb >> 0) & 0xFF;
         int wGreen = (wRgb >> 8) & 0xFF;
         int wRed = (wRgb >> 16) & 0xFF;
-        return Math.pow(wRed - vRed, 2) + Math.pow(wGreen - vGreen, 2) + Math.pow(wBlue - vBlue, 2);
+        return (int) Math.pow(wRed - vRed, 2) + (int) Math.pow(wGreen - vGreen, 2) + (int) Math.pow(wBlue - vBlue, 2);
         // return (wRed - vRed) + (wGreen - vGreen) + (wBlue - vBlue);
     }
 
