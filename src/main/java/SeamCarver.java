@@ -71,7 +71,7 @@ public class SeamCarver {
 // for each row keep the minimum of energy(x, y) + the energy of a reachable. i.e. only add the value of a cell to the
 // horizontalSeam [] if its value is less than a previous cell
         double cost;
-        int minXCoordinate = 0, minYCoordinate = 0;
+        int minXCoordinate = 0;
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height - 1; y++) {
                 cost = Double.POSITIVE_INFINITY;
@@ -82,7 +82,6 @@ public class SeamCarver {
                         cost = distTo[x][y] + distTo[x - 1][y + 1];
                         edgeTo[x - 1][y + 1] = edgeTo[x][y];
                         minXCoordinate = x - 1;
-                        minYCoordinate = y + 1;
                     }
                     // if it costs less to go to the next node from this path, then update edgeTo:
                     // edgeTo[x - 1][y + 1] = edgeTo[x][y];
@@ -91,7 +90,6 @@ public class SeamCarver {
                         cost = distTo[x][y] + distTo[x + 1][y + 1];
                         edgeTo[x + 1][y + 1] = edgeTo[x][y];
                         minXCoordinate = x + 1;
-                        minYCoordinate = y + 1;
                     }
                 } else if (x == 0) {
                     distTo[x + 1][y + 1] = energy[x + 1][y + 1];
@@ -99,14 +97,12 @@ public class SeamCarver {
                         cost = distTo[x][y] + distTo[x + 1][y + 1];
                         edgeTo[x + 1][y + 1] = edgeTo[x][y];
                         minXCoordinate = x + 1;
-                        minYCoordinate = y + 1;
                     }
                     distTo[x][y + 1] = energy[x][y + 1];
                     if (cost > distTo[x][y] + distTo[x][y + 1]) {
                         cost = distTo[x][y] + distTo[x][y + 1];
                         edgeTo[x][y + 1] = edgeTo[x][y];
                         minXCoordinate = x;
-                        minYCoordinate = y + 1;
                     }
 
                 } else if (x == width) {
@@ -115,17 +111,15 @@ public class SeamCarver {
                         cost = distTo[x][y] + distTo[x - 1][y + 1];
                         edgeTo[x - 1][y + 1] = edgeTo[x][y];
                         minXCoordinate = x - 1;
-                        minYCoordinate = y + 1;
                     }
                     distTo[x][y + 1] = energy[x][y + 1];
                     if (cost > distTo[x][y] + distTo[x][y + 1]) {
                         cost = distTo[x][y] + distTo[x][y + 1];
                         edgeTo[x][y + 1] = edgeTo[x][y];
                         minXCoordinate = x;
-                        minYCoordinate = y + 1;
                     }
                 }
-                horizontalSeam[x] = edgeTo[minXCoordinate][minYCoordinate];
+                horizontalSeam[x] = minXCoordinate;
             }
         }
         return horizontalSeam;
@@ -134,10 +128,79 @@ public class SeamCarver {
     // sequence of indices for vertical seam
     public int[] findVerticalSeam() {
         double[][] energy = new double[height][width];
-        int[][] distTo = new int[height][width];
+        double[][] distTo = new double[height][width];
         int[][] edgeTo = new int[height][width];
-        int[] verticalSeam = new int[height];
-
+        int[] verticalSeam = new int[width];
+        /* I really don't see why I need this now
+        for(int i=0; i<width; i++)
+            for(int j=0; j<height; j++){
+                // infinity value in double
+                energy[i][j]=Double.POSITIVE_INFINITY;
+            }
+        */
+        int id = 0;
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++) {
+                // infinity value in double
+                energy[i][j] = energy(i, j);
+                edgeTo[i][j] = id;
+                id++;
+            }
+// from step 3 of possible progress steps: Your algorithm can traverse this matrix treating some select
+// entries as reachable from (x, y) to calculate where the seam is located. Reachable are (x-1, y+1), (x, y+1), (x+1, y+1)
+// for each row keep the minimum of energy(x, y) + the energy of a reachable. i.e. only add the value of a cell to the
+// horizontalSeam [] if its value is less than a previous cell
+        double cost;
+        int minYCoordinate = 0;
+        for (int y = 0; y < height - 1; y++) {
+            for (int x = 0; x < width; x++) {
+                cost = Double.POSITIVE_INFINITY;
+                distTo[x][y] = energy[x][y];
+                if (x > 0 && x < width - 1) {
+                    distTo[x - 1][y + 1] = energy[x - 1][y + 1];
+                    if (cost > distTo[x][y] + distTo[x - 1][y + 1]) {
+                        cost = distTo[x][y] + distTo[x - 1][y + 1];
+                        edgeTo[x - 1][y + 1] = edgeTo[x][y];
+                        minYCoordinate = y + 1;
+                    }
+                    // if it costs less to go to the next node from this path, then update edgeTo:
+                    // edgeTo[x - 1][y + 1] = edgeTo[x][y];
+                    distTo[x + 1][y + 1] = energy[x + 1][y + 1];
+                    if (cost > distTo[x][y] + distTo[x + 1][y + 1]) {
+                        cost = distTo[x][y] + distTo[x + 1][y + 1];
+                        edgeTo[x + 1][y + 1] = edgeTo[x][y];
+                        minYCoordinate = y + 1;
+                    }
+                } else if (x == 0) {
+                    distTo[x + 1][y + 1] = energy[x + 1][y + 1];
+                    if (cost > distTo[x][y] + distTo[x + 1][y + 1]) {
+                        cost = distTo[x][y] + distTo[x + 1][y + 1];
+                        edgeTo[x + 1][y + 1] = edgeTo[x][y];
+                        minYCoordinate = y + 1;
+                    }
+                    distTo[x][y + 1] = energy[x][y + 1];
+                    if (cost > distTo[x][y] + distTo[x][y + 1]) {
+                        cost = distTo[x][y] + distTo[x][y + 1];
+                        edgeTo[x][y + 1] = edgeTo[x][y];
+                        minYCoordinate = y + 1;
+                    }
+                } else if (x == width) {
+                    distTo[x - 1][y + 1] = energy[x - 1][y + 1];
+                    if (cost > distTo[x][y] + distTo[x - 1][y + 1]) {
+                        cost = distTo[x][y] + distTo[x - 1][y + 1];
+                        edgeTo[x - 1][y + 1] = edgeTo[x][y];
+                        minYCoordinate = y + 1;
+                    }
+                    distTo[x][y + 1] = energy[x][y + 1];
+                    if (cost > distTo[x][y] + distTo[x][y + 1]) {
+                        cost = distTo[x][y] + distTo[x][y + 1];
+                        edgeTo[x][y + 1] = edgeTo[x][y];
+                        minYCoordinate = y + 1;
+                    }
+                }
+                verticalSeam[x] = minYCoordinate;
+            }
+        }
         return verticalSeam;
     }
 
@@ -185,9 +248,17 @@ public class SeamCarver {
 
     //  unit testing (optional)
     public static void main(String[] args) {
-        File pic = new File("libs/seam/3x4.png");
+        File pic = new File("src/main/resources/3x4.png");
         Picture picture = new Picture(pic);
         SeamCarver seamCarver = new SeamCarver(picture);
+        for (double d : seamCarver.findHorizontalSeam()) {
+            System.out.printf("%9.2f", d);
+        }
+        System.out.printf("\n");
+        for (double d : seamCarver.findVerticalSeam()) {
+            System.out.printf("%9.2f", d);
+        }
+        System.out.printf("\n");
         System.out.printf("The energy level for pixel (%d, %d) is: %f\n", 1, 2, seamCarver.energy(1, 2));
         System.out.printf("The energy level for pixel (%d, %d) is: %f\n", 1, 1, seamCarver.energy(1, 1));
         // 255, 203, 51 color values for 2,0

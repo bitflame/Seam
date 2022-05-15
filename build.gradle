@@ -14,7 +14,16 @@ dependencies {
     testImplementation 'org.spockframework:spock-core:2.1-groovy-3.0'
     testImplementation 'org.codehaus.groovy:groovy-all:3.0.10'
 }
-
+sourceSets {
+    main {
+        java {
+            srcDirs= ["src/main/java"]
+        }
+        resources {
+            srcDirs= ["src/main/resources"]
+        }
+    }
+}
 test {
     useJUnitPlatform()
 }
