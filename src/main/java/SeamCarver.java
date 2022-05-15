@@ -2,7 +2,6 @@
 
 import edu.princeton.cs.algs4.Picture;
 
-
 import java.io.File;
 
 public class SeamCarver {
@@ -49,7 +48,6 @@ public class SeamCarver {
 
     public int[] findHorizontalSeam() {
         double[][] energy = new double[height][width];
-        double currentCellEnergy = 0;
         double[][] distTo = new double[height][width];
         int[][] edgeTo = new int[height][width];
         int[] horizontalSeam = new int[width];
@@ -72,7 +70,7 @@ public class SeamCarver {
 // entries as reachable from (x, y) to calculate where the seam is located. Reachable are (x-1, y+1), (x, y+1), (x+1, y+1)
 // for each row keep the minimum of energy(x, y) + the energy of a reachable. i.e. only add the value of a cell to the
 // horizontalSeam [] if its value is less than a previous cell
-        double cost = Double.POSITIVE_INFINITY;
+        double cost;
         int minXCoordinate = 0, minYCoordinate = 0;
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height - 1; y++) {
