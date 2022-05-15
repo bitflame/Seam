@@ -36,9 +36,9 @@ public class SeamCarver {
 
     // energy of pixel at column x and row y
     public double energy(int x, int y) {
-        if (x > width - 1 || x < 0)
+        if (x > height || x < 0)
             throw new IllegalArgumentException("x coordinate is not a valid value for this image.");
-        if (y > height - 1 || y < 0)
+        if (y > width || y < 0)
             throw new IllegalArgumentException("y coordinate is not a valid value for this image.");
 //        System.out.printf("Here is the value before taking the square root: %f for %d and %d\n", calculateHorizontalEnergy(x, y) +
 //                calculateVerticalEnergy(x, y), x, y);
@@ -59,8 +59,8 @@ public class SeamCarver {
             }
         */
         int id = 0;
-        for (int i = 0; i < width; i++)
-            for (int j = 0; j < height; j++) {
+        for (int i = 0; i < height; i++)
+            for (int j = 0; j < width; j++) {
                 // infinity value in double
                 energy[i][j] = energy(i, j);
                 edgeTo[i][j] = id;
@@ -76,7 +76,7 @@ public class SeamCarver {
             for (int y = 0; y < height - 1; y++) {
                 cost = Double.POSITIVE_INFINITY;
                 distTo[x][y] = energy[x][y];
-                if (x > 0 && x < width - 1) {
+                if (x > 0 && x < width - 1 && y < width - 1) {
                     distTo[x - 1][y + 1] = energy[x - 1][y + 1];
                     if (cost > distTo[x][y] + distTo[x - 1][y + 1]) {
                         cost = distTo[x][y] + distTo[x - 1][y + 1];
@@ -91,7 +91,7 @@ public class SeamCarver {
                         edgeTo[x + 1][y + 1] = edgeTo[x][y];
                         minXCoordinate = x + 1;
                     }
-                } else if (x == 0) {
+                } else if (x == 0 && y < width - 1) {
                     distTo[x + 1][y + 1] = energy[x + 1][y + 1];
                     if (cost > distTo[x][y] + distTo[x + 1][y + 1]) {
                         cost = distTo[x][y] + distTo[x + 1][y + 1];
@@ -105,7 +105,7 @@ public class SeamCarver {
                         minXCoordinate = x;
                     }
 
-                } else if (x == width) {
+                } else if (x == width && y < height) {
                     distTo[x - 1][y + 1] = energy[x - 1][y + 1];
                     if (cost > distTo[x][y] + distTo[x - 1][y + 1]) {
                         cost = distTo[x][y] + distTo[x - 1][y + 1];
@@ -127,10 +127,10 @@ public class SeamCarver {
 
     // sequence of indices for vertical seam
     public int[] findVerticalSeam() {
-        double[][] energy = new double[height][width];
-        double[][] distTo = new double[height][width];
-        int[][] edgeTo = new int[height][width];
-        int[] verticalSeam = new int[width];
+        double[][] energy = new double[width][height];
+        double[][] distTo = new double[width][height];
+        int[][] edgeTo = new int[width][height];
+        int[] verticalSeam = new int[height];
         /* I really don't see why I need this now
         for(int i=0; i<width; i++)
             for(int j=0; j<height; j++){
@@ -139,8 +139,8 @@ public class SeamCarver {
             }
         */
         int id = 0;
-        for (int i = 0; i < width; i++)
-            for (int j = 0; j < height; j++) {
+        for (int i = 0; i < width - 1; i++)
+            for (int j = 0; j < height - 1; j++) {
                 // infinity value in double
                 energy[i][j] = energy(i, j);
                 edgeTo[i][j] = id;
@@ -156,7 +156,7 @@ public class SeamCarver {
             for (int x = 0; x < width; x++) {
                 cost = Double.POSITIVE_INFINITY;
                 distTo[x][y] = energy[x][y];
-                if (x > 0 && x < width - 1) {
+                if (x > 0 && y < width - 1) {
                     distTo[x - 1][y + 1] = energy[x - 1][y + 1];
                     if (cost > distTo[x][y] + distTo[x - 1][y + 1]) {
                         cost = distTo[x][y] + distTo[x - 1][y + 1];
@@ -171,7 +171,7 @@ public class SeamCarver {
                         edgeTo[x + 1][y + 1] = edgeTo[x][y];
                         minYCoordinate = y + 1;
                     }
-                } else if (x == 0) {
+                } else if (x == 0 && y < width - 1) {
                     distTo[x + 1][y + 1] = energy[x + 1][y + 1];
                     if (cost > distTo[x][y] + distTo[x + 1][y + 1]) {
                         cost = distTo[x][y] + distTo[x + 1][y + 1];
@@ -218,31 +218,39 @@ public class SeamCarver {
             throw new IllegalArgumentException("Can not carve any more vertical seams; image width is 1 pixel.");
     }
 
+    // x: column y: row
     private int calculateHorizontalEnergy(int x, int y) {
         // (x-1, y),  ( x+1, y) - getRGB() has a companion called setRGB() (0, y), and (x, 0) is 1000
+        int wRed = 0, wBlue = 0, wGreen = 0;
         int vRgb = currentPicture.getRGB(x - 1, y);
-        int vBlue = (vRgb >> 0) & 0xFF;
-        int vGreen = (vRgb >> 8) & 0xFF;
         int vRed = (vRgb >> 16) & 0xFF;
-        int wRgb = currentPicture.getRGB(x + 1, y);
-        int wBlue = (wRgb >> 0) & 0xFF;
-        int wGreen = (wRgb >> 8) & 0xFF;
-        int wRed = (wRgb >> 16) & 0xFf;
-        return (int) Math.pow(wRed - vRed, 2) + (int) Math.pow(wGreen - vGreen, 2) + (int) Math.pow(wBlue - vBlue, 2);
+        int vGreen = (vRgb >> 8) & 0xFF;
+        int vBlue = (vRgb >> 0) & 0xFF;
+        if (x < width - 1) {
+            int wRgb = currentPicture.getRGB(x + 1, y);
+            wRed = (wRgb >> 16) & 0xFF;
+            wGreen = (wRgb >> 8) & 0xFF;
+            wBlue = (wRgb >> 0) & 0xFF;
+        }
+        int sum = (wRed - vRed) + (wGreen - vGreen) + (wBlue - vBlue);
+        int result = (int) Math.pow(wRed - vRed, 2) + (int) Math.pow(wGreen - vGreen, 2) + (int) Math.pow(wBlue - vBlue, 2);
+        return result;
         // return (wRed - vRed) + (wGreen - vGreen) + (wBlue - vBlue);
     }
 
+    // x: column y: row
     private int calculateVerticalEnergy(int x, int y) {
         // v = (x, y-1),  w = (x, y+1)
         int vRgb = currentPicture.getRGB(x, y - 1);
-        int vBlue = (vRgb >> 0) & 0xFF;
-        int vGreen = (vRgb >> 8) & 0xFF;
         int vRed = (vRgb >> 16) & 0xFF;
+        int vGreen = (vRgb >> 8) & 0xFF;
+        int vBlue = (vRgb >> 0) & 0xFF;
         int wRgb = currentPicture.getRGB(x, y + 1);
-        int wBlue = (wRgb >> 0) & 0xFF;
-        int wGreen = (wRgb >> 8) & 0xFF;
         int wRed = (wRgb >> 16) & 0xFF;
-        return (int) Math.pow(wRed - vRed, 2) + (int) Math.pow(wGreen - vGreen, 2) + (int) Math.pow(wBlue - vBlue, 2);
+        int wGreen = (wRgb >> 8) & 0xFF;
+        int wBlue = (wRgb >> 0) & 0xFF;
+        int result = (int) Math.pow(wRed - vRed, 2) + (int) Math.pow(wGreen - vGreen, 2) + (int) Math.pow(wBlue - vBlue, 2);
+        return result;
         // return (wRed - vRed) + (wGreen - vGreen) + (wBlue - vBlue);
     }
 
@@ -251,6 +259,12 @@ public class SeamCarver {
         File pic = new File("src/main/resources/3x4.png");
         Picture picture = new Picture(pic);
         SeamCarver seamCarver = new SeamCarver(picture);
+        System.out.printf("\n");
+        System.out.printf("The energy level for pixel (Column %d, Row %d) is: %f\n", 1, 2, seamCarver.energy(1, 2));
+        System.out.printf("The energy level for pixel (Column %d, Row %d) is: %f\n", 1, 1, seamCarver.energy(1, 1));
+        // 255, 203, 51 color values for 2,0
+        double x = Math.sqrt(Math.pow(255, 2) + Math.pow(203, 2) + Math.pow(51, 2));
+        System.out.printf("%f\n", x);
         for (double d : seamCarver.findHorizontalSeam()) {
             System.out.printf("%9.2f", d);
         }
@@ -258,12 +272,6 @@ public class SeamCarver {
         for (double d : seamCarver.findVerticalSeam()) {
             System.out.printf("%9.2f", d);
         }
-        System.out.printf("\n");
-        System.out.printf("The energy level for pixel (%d, %d) is: %f\n", 1, 2, seamCarver.energy(1, 2));
-        System.out.printf("The energy level for pixel (%d, %d) is: %f\n", 1, 1, seamCarver.energy(1, 1));
-        // 255, 203, 51 color values for 2,0
-        double x = Math.sqrt(Math.pow(255, 2) + Math.pow(203, 2) + Math.pow(51, 2));
-        System.out.printf("%f\n", x);
     }
 
 }
