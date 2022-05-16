@@ -46,6 +46,41 @@ public class SeamCarver {
         return Math.sqrt(calculateHorizontalEnergy(x, y) + calculateVerticalEnergy(x, y));
     }
 
+    private int calculateHorizontalEnergy(int x, int y) {
+        // (x-1, y),  ( x+1, y) - getRGB() has a companion called setRGB() (0, y), and (x, 0) is 1000
+        int wRed = 0, wBlue = 0, wGreen = 0;
+        int vRgb = currentPicture.getRGB(x - 1, y);
+        int vRed = (vRgb >> 16) & 0xFF;
+        int vGreen = (vRgb >> 8) & 0xFF;
+        int vBlue = (vRgb >> 0) & 0xFF;
+        if (x < width - 1) {
+            int wRgb = currentPicture.getRGB(x + 1, y);
+            wRed = (wRgb >> 16) & 0xFF;
+            wGreen = (wRgb >> 8) & 0xFF;
+            wBlue = (wRgb >> 0) & 0xFF;
+        }
+        int sum = (wRed - vRed) + (wGreen - vGreen) + (wBlue - vBlue);
+        int result = (int) Math.pow(wRed - vRed, 2) + (int) Math.pow(wGreen - vGreen, 2) + (int) Math.pow(wBlue - vBlue, 2);
+        return result;
+        // return (wRed - vRed) + (wGreen - vGreen) + (wBlue - vBlue);
+    }
+
+    // x: column y: row
+    private int calculateVerticalEnergy(int x, int y) {
+        // v = (x, y-1),  w = (x, y+1)
+        int vRgb = currentPicture.getRGB(x, y - 1);
+        int vRed = (vRgb >> 16) & 0xFF;
+        int vGreen = (vRgb >> 8) & 0xFF;
+        int vBlue = (vRgb >> 0) & 0xFF;
+        int wRgb = currentPicture.getRGB(x, y + 1);
+        int wRed = (wRgb >> 16) & 0xFF;
+        int wGreen = (wRgb >> 8) & 0xFF;
+        int wBlue = (wRgb >> 0) & 0xFF;
+        int result = (int) Math.pow(wRed - vRed, 2) + (int) Math.pow(wGreen - vGreen, 2) + (int) Math.pow(wBlue - vBlue, 2);
+        return result;
+        // return (wRed - vRed) + (wGreen - vGreen) + (wBlue - vBlue);
+    }
+
     public int[] findHorizontalSeam() {
         double[][] energy = new double[height][width];
         double[][] distTo = new double[height][width];
@@ -71,56 +106,59 @@ public class SeamCarver {
 // for each row keep the minimum of energy(x, y) + the energy of a reachable. i.e. only add the value of a cell to the
 // horizontalSeam [] if its value is less than a previous cell
         double cost;
-        int minXCoordinate = 0;
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height - 1; y++) {
+        int minYCoordinate = 0;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 cost = Double.POSITIVE_INFINITY;
-                distTo[x][y] = energy[x][y];
-                if (x > 0 && x < width - 1 && y < width - 1) {
-                    distTo[x - 1][y + 1] = energy[x - 1][y + 1];
-                    if (cost > distTo[x][y] + distTo[x - 1][y + 1]) {
-                        cost = distTo[x][y] + distTo[x - 1][y + 1];
-                        edgeTo[x - 1][y + 1] = edgeTo[x][y];
-                        minXCoordinate = x - 1;
+                distTo[y][x] = energy[y][x];
+                if (x > 0 && x < width - 1) {
+                    distTo[y + 1][x - 1] = energy[y + 1][x - 1];
+                    if (cost > distTo[y][x] + distTo[y + 1][x - 1]) {
+                        cost = distTo[y][x] + distTo[y + 1][x - 1];
+                        edgeTo[y + 1][x - 1] = edgeTo[y][x];
+                        minYCoordinate = y + 1;
                     }
-                    // if it costs less to go to the next node from this path, then update edgeTo:
-                    // edgeTo[x - 1][y + 1] = edgeTo[x][y];
-                    distTo[x + 1][y + 1] = energy[x + 1][y + 1];
-                    if (cost > distTo[x][y] + distTo[x + 1][y + 1]) {
-                        cost = distTo[x][y] + distTo[x + 1][y + 1];
-                        edgeTo[x + 1][y + 1] = edgeTo[x][y];
-                        minXCoordinate = x + 1;
+                    distTo[y + 1][x] = energy[y + 1][x];
+                    if (cost > distTo[y][x] + distTo[y + 1][x]) {
+                        cost = distTo[y][x] + distTo[y + 1][x];
+                        edgeTo[y + 1][x] = edgeTo[y][x];
+                        minYCoordinate = y + 1;
                     }
-                } else if (x == 0 && y < width - 1) {
-                    distTo[x + 1][y + 1] = energy[x + 1][y + 1];
-                    if (cost > distTo[x][y] + distTo[x + 1][y + 1]) {
-                        cost = distTo[x][y] + distTo[x + 1][y + 1];
-                        edgeTo[x + 1][y + 1] = edgeTo[x][y];
-                        minXCoordinate = x + 1;
+                    distTo[y][x + 1] = energy[y][x + 1];
+                    if (cost > distTo[y][x] + distTo[y][x + 1]) {
+                        cost = distTo[y][x] + distTo[y][x + 1];
+                        edgeTo[y][x + 1] = edgeTo[y][x];
+                        minYCoordinate = y + 1;
                     }
-                    distTo[x][y + 1] = energy[x][y + 1];
-                    if (cost > distTo[x][y] + distTo[x][y + 1]) {
-                        cost = distTo[x][y] + distTo[x][y + 1];
-                        edgeTo[x][y + 1] = edgeTo[x][y];
-                        minXCoordinate = x;
+                } else if (x == 0) {
+                    distTo[y + 1][x] = energy[y + 1][x];
+                    if (cost > distTo[y][x] + distTo[y + 1][x]) {
+                        cost = distTo[y][x] + distTo[y + 1][x];
+                        edgeTo[y + 1][x] = edgeTo[y][x];
+                        minYCoordinate = y + 1;
                     }
-
-                } else if (x == width && y < height) {
-                    distTo[x - 1][y + 1] = energy[x - 1][y + 1];
-                    if (cost > distTo[x][y] + distTo[x - 1][y + 1]) {
-                        cost = distTo[x][y] + distTo[x - 1][y + 1];
-                        edgeTo[x - 1][y + 1] = edgeTo[x][y];
-                        minXCoordinate = x - 1;
+                    distTo[y + 1][x + 1] = energy[y + 1][x + 1];
+                    if (cost > distTo[y][x] + distTo[y + 1][x + 1]) {
+                        cost = distTo[y][x] + distTo[y + 1][x + 1];
+                        edgeTo[y + 1][x + 1] = edgeTo[y][x];
+                        minYCoordinate = y + 1;
                     }
-                    distTo[x][y + 1] = energy[x][y + 1];
-                    if (cost > distTo[x][y] + distTo[x][y + 1]) {
-                        cost = distTo[x][y] + distTo[x][y + 1];
-                        edgeTo[x][y + 1] = edgeTo[x][y];
-                        minXCoordinate = x;
+                } else if (x == width) {
+                    distTo[y + 1][x - 1] = energy[y + 1][x - 1];
+                    if (cost > distTo[y][x] + distTo[y + 1][x - 1]) {
+                        cost = distTo[y][x] + distTo[y + 1][x - 1];
+                        edgeTo[y + 1][x - 1] = edgeTo[y][x];
+                        minYCoordinate = y + 1;
+                    }
+                    distTo[y + 1][x] = energy[y + 1][x];
+                    if (cost > distTo[y][x] + distTo[y + 1][x]) {
+                        cost = distTo[y][x] + distTo[y + 1][x];
+                        edgeTo[y + 1][x] = edgeTo[y][x];
+                        minYCoordinate = y + 1;
                     }
                 }
-                horizontalSeam[x] = minXCoordinate;
             }
+            horizontalSeam[y] = minYCoordinate;
         }
         return horizontalSeam;
     }
@@ -220,40 +258,7 @@ public class SeamCarver {
     }
 
     // x: column y: row
-    private int calculateHorizontalEnergy(int x, int y) {
-        // (x-1, y),  ( x+1, y) - getRGB() has a companion called setRGB() (0, y), and (x, 0) is 1000
-        int wRed = 0, wBlue = 0, wGreen = 0;
-        int vRgb = currentPicture.getRGB(x - 1, y);
-        int vRed = (vRgb >> 16) & 0xFF;
-        int vGreen = (vRgb >> 8) & 0xFF;
-        int vBlue = (vRgb >> 0) & 0xFF;
-        if (x < width - 1) {
-            int wRgb = currentPicture.getRGB(x + 1, y);
-            wRed = (wRgb >> 16) & 0xFF;
-            wGreen = (wRgb >> 8) & 0xFF;
-            wBlue = (wRgb >> 0) & 0xFF;
-        }
-        int sum = (wRed - vRed) + (wGreen - vGreen) + (wBlue - vBlue);
-        int result = (int) Math.pow(wRed - vRed, 2) + (int) Math.pow(wGreen - vGreen, 2) + (int) Math.pow(wBlue - vBlue, 2);
-        return result;
-        // return (wRed - vRed) + (wGreen - vGreen) + (wBlue - vBlue);
-    }
 
-    // x: column y: row
-    private int calculateVerticalEnergy(int x, int y) {
-        // v = (x, y-1),  w = (x, y+1)
-        int vRgb = currentPicture.getRGB(x, y - 1);
-        int vRed = (vRgb >> 16) & 0xFF;
-        int vGreen = (vRgb >> 8) & 0xFF;
-        int vBlue = (vRgb >> 0) & 0xFF;
-        int wRgb = currentPicture.getRGB(x, y + 1);
-        int wRed = (wRgb >> 16) & 0xFF;
-        int wGreen = (wRgb >> 8) & 0xFF;
-        int wBlue = (wRgb >> 0) & 0xFF;
-        int result = (int) Math.pow(wRed - vRed, 2) + (int) Math.pow(wGreen - vGreen, 2) + (int) Math.pow(wBlue - vBlue, 2);
-        return result;
-        // return (wRed - vRed) + (wGreen - vGreen) + (wBlue - vBlue);
-    }
 
     //  unit testing (optional)
     public static void main(String[] args) {
