@@ -62,7 +62,7 @@ public class SeamCarver {
         for (int i = 0; i < height; i++)
             for (int j = 0; j < width; j++) {
                 // infinity value in double
-                energy[i][j] = energy(i, j);
+                energy[i][j] = energy(j, i);
                 edgeTo[i][j] = id;
                 id++;
             }
@@ -127,9 +127,9 @@ public class SeamCarver {
 
     // sequence of indices for vertical seam
     public int[] findVerticalSeam() {
-        double[][] energy = new double[width][height];
-        double[][] distTo = new double[width][height];
-        int[][] edgeTo = new int[width][height];
+        double[][] energy = new double[height][width];
+        double[][] distTo = new double[height][width];
+        int[][] edgeTo = new int[height][width];
         int[] verticalSeam = new int[height];
         /* I really don't see why I need this now
         for(int i=0; i<width; i++)
@@ -139,10 +139,10 @@ public class SeamCarver {
             }
         */
         int id = 0;
-        for (int i = 0; i < width - 1; i++)
-            for (int j = 0; j < height - 1; j++) {
+        for (int i = 0; i < height; i++)
+            for (int j = 0; j < width; j++) {
                 // infinity value in double
-                energy[i][j] = energy(i, j);
+                energy[i][j] = energy(j, i);
                 edgeTo[i][j] = id;
                 id++;
             }
@@ -152,8 +152,9 @@ public class SeamCarver {
 // horizontalSeam [] if its value is less than a previous cell
         double cost;
         int minYCoordinate = 0;
-        for (int y = 0; y < height - 1; y++) {
-            for (int x = 0; x < width; x++) {
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height - 1; y++) {
                 cost = Double.POSITIVE_INFINITY;
                 distTo[x][y] = energy[x][y];
                 if (x > 0 && y < width - 1) {
@@ -256,7 +257,7 @@ public class SeamCarver {
 
     //  unit testing (optional)
     public static void main(String[] args) {
-        File pic = new File("src/main/resources/3x4.png");
+        File pic = new File(args[0]);
         Picture picture = new Picture(pic);
         SeamCarver seamCarver = new SeamCarver(picture);
         System.out.printf("\n");
