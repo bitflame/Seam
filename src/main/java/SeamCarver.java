@@ -1,5 +1,6 @@
 
 
+import edu.princeton.cs.algs4.IndexMinPQ;
 import edu.princeton.cs.algs4.Picture;
 
 import java.io.File;
@@ -86,13 +87,8 @@ public class SeamCarver {
         double[][] distTo = new double[height][width];
         int[][] edgeTo = new int[height][width];
         int[] horizontalSeam = new int[width];
-        /* I really don't see why I need this now
-        for(int i=0; i<width; i++)
-            for(int j=0; j<height; j++){
-                // infinity value in double
-                energy[i][j]=Double.POSITIVE_INFINITY;
-            }
-        */
+        IndexMinPQ pq = new IndexMinPQ(height);
+        double pqTotalCost = 0;
         int id = 0;
         for (int i = 0; i < height; i++)
             for (int j = 0; j < width; j++) {
@@ -101,10 +97,10 @@ public class SeamCarver {
                 edgeTo[i][j] = id;
                 id++;
             }
-// from step 3 of possible progress steps: Your algorithm can traverse this matrix treating some select
-// entries as reachable from (x, y) to calculate where the seam is located. Reachable are (x-1, y+1), (x, y+1), (x+1, y+1)
-// for each row keep the minimum of energy(x, y) + the energy of a reachable. i.e. only add the value of a cell to the
-// horizontalSeam [] if its value is less than a previous cell
+// from step 3 of possible progress steps: Your algorithm can traverse this matrix treating some select entries as reachable
+// from (x, y) to calculate where the seam is located. Need to switch to indexed minimum priority queue to update keys or
+// indexes when the next node changes the lowest cost path like 7x3 sample. If totalSum of any given iteration is less
+// than the sum in pq, I need to update pq
         double cost;
         int minYCoordinate = 0;
         for (int y = 0; y < height; y++) {
@@ -115,50 +111,64 @@ public class SeamCarver {
                     distTo[y + 1][x - 1] = energy[y + 1][x - 1];
                     if (cost > distTo[y][x] + distTo[y + 1][x - 1]) {
                         cost = distTo[y][x] + distTo[y + 1][x - 1];
+                        pqTotalCost = cost + pqTotalCost;
                         edgeTo[y + 1][x - 1] = edgeTo[y][x];
                         minYCoordinate = y + 1;
+                        pq.insert(y, pqTotalCost);
                     }
                     distTo[y + 1][x] = energy[y + 1][x];
                     if (cost > distTo[y][x] + distTo[y + 1][x]) {
                         cost = distTo[y][x] + distTo[y + 1][x];
+                        pqTotalCost = cost + pqTotalCost;
                         edgeTo[y + 1][x] = edgeTo[y][x];
                         minYCoordinate = y + 1;
-                    }
-                    distTo[y][x + 1] = energy[y][x + 1];
-                    if (cost > distTo[y][x] + distTo[y][x + 1]) {
-                        cost = distTo[y][x] + distTo[y][x + 1];
-                        edgeTo[y][x + 1] = edgeTo[y][x];
-                        minYCoordinate = y + 1;
-                    }
-                } else if (x == 0) {
-                    distTo[y + 1][x] = energy[y + 1][x];
-                    if (cost > distTo[y][x] + distTo[y + 1][x]) {
-                        cost = distTo[y][x] + distTo[y + 1][x];
-                        edgeTo[y + 1][x] = edgeTo[y][x];
-                        minYCoordinate = y + 1;
+                        pq.insert(y, pqTotalCost);
                     }
                     distTo[y + 1][x + 1] = energy[y + 1][x + 1];
                     if (cost > distTo[y][x] + distTo[y + 1][x + 1]) {
                         cost = distTo[y][x] + distTo[y + 1][x + 1];
+                        pqTotalCost = cost + pqTotalCost;
                         edgeTo[y + 1][x + 1] = edgeTo[y][x];
                         minYCoordinate = y + 1;
+                        pq.insert(y, pqTotalCost);
+                    }
+
+                } else if (x == 0) {
+                    distTo[y + 1][x] = energy[y + 1][x];
+                    if (cost > distTo[y][x] + distTo[y + 1][x]) {
+                        cost = distTo[y][x] + distTo[y + 1][x];
+                        pqTotalCost = cost + pqTotalCost;
+                        edgeTo[y + 1][x] = edgeTo[y][x];
+                        minYCoordinate = y + 1;
+                        pq.insert(y, pqTotalCost);
+                    }
+                    distTo[y + 1][x + 1] = energy[y + 1][x + 1];
+                    if (cost > distTo[y][x] + distTo[y + 1][x + 1]) {
+                        cost = distTo[y][x] + distTo[y + 1][x + 1];
+                        pqTotalCost = cost + pqTotalCost;
+                        edgeTo[y + 1][x + 1] = edgeTo[y][x];
+                        minYCoordinate = y + 1;
+                        pq.insert(y, pqTotalCost);
                     }
                 } else if (x == width) {
                     distTo[y + 1][x - 1] = energy[y + 1][x - 1];
                     if (cost > distTo[y][x] + distTo[y + 1][x - 1]) {
                         cost = distTo[y][x] + distTo[y + 1][x - 1];
+                        pqTotalCost = cost + pqTotalCost;
                         edgeTo[y + 1][x - 1] = edgeTo[y][x];
                         minYCoordinate = y + 1;
+                        pq.insert(y, pqTotalCost);
                     }
                     distTo[y + 1][x] = energy[y + 1][x];
                     if (cost > distTo[y][x] + distTo[y + 1][x]) {
                         cost = distTo[y][x] + distTo[y + 1][x];
+                        pqTotalCost = cost + pqTotalCost;
                         edgeTo[y + 1][x] = edgeTo[y][x];
                         minYCoordinate = y + 1;
+                        pq.insert(y, pqTotalCost);
                     }
                 }
             }
-            horizontalSeam[y] = minYCoordinate;
         }
         return horizontalSeam;
     }
