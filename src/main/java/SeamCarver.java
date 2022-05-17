@@ -9,15 +9,15 @@ public class SeamCarver {
     // I wonder if we can use the values at the borders
     // create a seam carver object based on the given picture
     Picture currentPicture;
-    int height;
-    int width;
+    int rows;
+    int columns;
 
 
     public SeamCarver(Picture picture) {
         if (picture == null) throw new IllegalArgumentException("picture object is null.");
         currentPicture = new Picture(picture);
-        height = picture.height();
-        width = picture.width();
+        rows = picture.height();
+        columns = picture.width();
     }
 
     // current picture
@@ -27,26 +27,27 @@ public class SeamCarver {
 
     // width of current picture
     public int width() {
-        return width;
+        return columns;
     }
 
     // height of current picture
     public int height() {
-        return height;
+        return rows;
     }
 
     // energy of pixel at column x and row y
     public double energy(int x, int y) {
-        if (x > height || x < 0)
+        if (x > columns || x < 0)
             throw new IllegalArgumentException("x coordinate is not a valid value for this image.");
-        if (y > width || y < 0)
+        if (y > rows || y < 0)
             throw new IllegalArgumentException("y coordinate is not a valid value for this image.");
 //        System.out.printf("Here is the value before taking the square root: %f for %d and %d\n", calculateHorizontalEnergy(x, y) +
 //                calculateVerticalEnergy(x, y), x, y);
-        if (x == 0 || y == 0 || x == width - 1 || y == height - 1) return (1000);
+        if (x == 0 || y == 0 || x == columns - 1 || y == rows - 1) return (1000);
         return Math.sqrt(calculateHorizontalEnergy(x, y) + calculateVerticalEnergy(x, y));
     }
 
+    // energy of pixel at column x and row y
     private int calculateHorizontalEnergy(int x, int y) {
         // (x-1, y),  ( x+1, y) - getRGB() has a companion called setRGB() (0, y), and (x, 0) is 1000
         int wRed = 0, wBlue = 0, wGreen = 0;
@@ -54,12 +55,10 @@ public class SeamCarver {
         int vRed = (vRgb >> 16) & 0xFF;
         int vGreen = (vRgb >> 8) & 0xFF;
         int vBlue = (vRgb >> 0) & 0xFF;
-        if (x < width - 1) {
-            int wRgb = currentPicture.getRGB(x + 1, y);
-            wRed = (wRgb >> 16) & 0xFF;
-            wGreen = (wRgb >> 8) & 0xFF;
-            wBlue = (wRgb >> 0) & 0xFF;
-        }
+        int wRgb = currentPicture.getRGB(x + 1, y);
+        wRed = (wRgb >> 16) & 0xFF;
+        wGreen = (wRgb >> 8) & 0xFF;
+        wBlue = (wRgb >> 0) & 0xFF;
         int sum = (wRed - vRed) + (wGreen - vGreen) + (wBlue - vBlue);
         int result = (int) Math.pow(wRed - vRed, 2) + (int) Math.pow(wGreen - vGreen, 2) + (int) Math.pow(wBlue - vBlue, 2);
         return result;
@@ -83,15 +82,15 @@ public class SeamCarver {
     }
 
     public int[] findHorizontalSeam() {
-        double[][] energy = new double[height][width];
-        double[][] distTo = new double[height][width];
-        int[][] edgeTo = new int[height][width];
-        int[] horizontalSeam = new int[width];
-        IndexMinPQ pq = new IndexMinPQ(height);
+        double[][] energy = new double[rows][columns];
+        double[][] distTo = new double[rows][columns];
+        int[][] edgeTo = new int[rows][columns];
+        int[] horizontalSeam = new int[columns];
+        IndexMinPQ pq = new IndexMinPQ(columns);
         double pqTotalCost = 0;
         int id = 0;
-        for (int i = 0; i < height; i++)
-            for (int j = 0; j < width; j++) {
+        for (int i = 0; i < rows; i++)
+            for (int j = 0; j < columns; j++) {
                 // infinity value in double
                 energy[i][j] = energy(j, i);
                 edgeTo[i][j] = id;
@@ -103,17 +102,21 @@ public class SeamCarver {
 // than the sum in pq, I need to update pq
         double cost;
         int minYCoordinate = 0;
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                cost = Double.POSITIVE_INFINITY;
+        for (int y = 0; y < rows; y++) {
+            cost = Double.POSITIVE_INFINITY;
+            for (int x = 0; x < columns; x++) {
                 distTo[y][x] = energy[y][x];
-                if (x > 0 && x < width - 1) {
+                if (x > 0 && x < columns - 1) {
                     distTo[y + 1][x - 1] = energy[y + 1][x - 1];
+                    if (pq.keyOf(y).compareTo(distTo[y + 1][x - 1]) > 0) {
+                        pq.changeKey(y, distTo[y + 1][x - 1]);
+                    } // this block is going to replace the following block
                     if (cost > distTo[y][x] + distTo[y + 1][x - 1]) {
                         cost = distTo[y][x] + distTo[y + 1][x - 1];
                         pqTotalCost = cost + pqTotalCost;
                         edgeTo[y + 1][x - 1] = edgeTo[y][x];
                         minYCoordinate = y + 1;
+                        if (pq.contains(y)) pq.changeKey(y, cost);
                         pq.insert(y, pqTotalCost);
                     }
                     distTo[y + 1][x] = energy[y + 1][x];
@@ -122,7 +125,8 @@ public class SeamCarver {
                         pqTotalCost = cost + pqTotalCost;
                         edgeTo[y + 1][x] = edgeTo[y][x];
                         minYCoordinate = y + 1;
-                        pq.insert(y, pqTotalCost);
+                        if (pq.contains(y)) pq.changeKey(y, cost);
+                        else pq.insert(y, pqTotalCost);
                     }
                     distTo[y + 1][x + 1] = energy[y + 1][x + 1];
                     if (cost > distTo[y][x] + distTo[y + 1][x + 1]) {
@@ -130,7 +134,8 @@ public class SeamCarver {
                         pqTotalCost = cost + pqTotalCost;
                         edgeTo[y + 1][x + 1] = edgeTo[y][x];
                         minYCoordinate = y + 1;
-                        pq.insert(y, pqTotalCost);
+                        if (pq.contains(y)) pq.changeKey(y, cost);
+                        else pq.insert(y, pqTotalCost);
                     }
 
                 } else if (x == 0) {
@@ -148,9 +153,10 @@ public class SeamCarver {
                         pqTotalCost = cost + pqTotalCost;
                         edgeTo[y + 1][x + 1] = edgeTo[y][x];
                         minYCoordinate = y + 1;
-                        pq.insert(y, pqTotalCost);
+                        if (pq.contains(y)) pq.changeKey(y, cost);
+                        else pq.insert(y, pqTotalCost);
                     }
-                } else if (x == width) {
+                } else if (x == columns) {
                     distTo[y + 1][x - 1] = energy[y + 1][x - 1];
                     if (cost > distTo[y][x] + distTo[y + 1][x - 1]) {
                         cost = distTo[y][x] + distTo[y + 1][x - 1];
@@ -165,7 +171,8 @@ public class SeamCarver {
                         pqTotalCost = cost + pqTotalCost;
                         edgeTo[y + 1][x] = edgeTo[y][x];
                         minYCoordinate = y + 1;
-                        pq.insert(y, pqTotalCost);
+                        if (pq.contains(y)) pq.changeKey(y, cost);
+                        else pq.insert(y, pqTotalCost);
                     }
                 }
             }
@@ -175,20 +182,20 @@ public class SeamCarver {
 
     // sequence of indices for vertical seam
     public int[] findVerticalSeam() {
-        double[][] energy = new double[height][width];
-        double[][] distTo = new double[height][width];
-        int[][] edgeTo = new int[height][width];
-        int[] verticalSeam = new int[height];
+        double[][] energy = new double[rows][columns];
+        double[][] distTo = new double[rows][columns];
+        int[][] edgeTo = new int[rows][columns];
+        int[] verticalSeam = new int[rows];
         /* I really don't see why I need this now
-        for(int i=0; i<width; i++)
-            for(int j=0; j<height; j++){
+        for(int i=0; i<columns; i++)
+            for(int j=0; j<rows; j++){
                 // infinity value in double
                 energy[i][j]=Double.POSITIVE_INFINITY;
             }
         */
         int id = 0;
-        for (int i = 0; i < height; i++)
-            for (int j = 0; j < width; j++) {
+        for (int i = 0; i < rows; i++)
+            for (int j = 0; j < columns; j++) {
                 // infinity value in double
                 energy[i][j] = energy(j, i);
                 edgeTo[i][j] = id;
@@ -201,11 +208,11 @@ public class SeamCarver {
         double cost;
         int minYCoordinate = 0;
 
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height - 1; y++) {
+        for (int x = 0; x < columns; x++) {
+            for (int y = 0; y < rows - 1; y++) {
                 cost = Double.POSITIVE_INFINITY;
                 distTo[x][y] = energy[x][y];
-                if (x > 0 && y < width - 1) {
+                if (x > 0 && y < columns - 1) {
                     distTo[x - 1][y + 1] = energy[x - 1][y + 1];
                     if (cost > distTo[x][y] + distTo[x - 1][y + 1]) {
                         cost = distTo[x][y] + distTo[x - 1][y + 1];
@@ -220,7 +227,7 @@ public class SeamCarver {
                         edgeTo[x + 1][y + 1] = edgeTo[x][y];
                         minYCoordinate = y + 1;
                     }
-                } else if (x == 0 && y < width - 1) {
+                } else if (x == 0 && y < columns - 1) {
                     distTo[x + 1][y + 1] = energy[x + 1][y + 1];
                     if (cost > distTo[x][y] + distTo[x + 1][y + 1]) {
                         cost = distTo[x][y] + distTo[x + 1][y + 1];
@@ -233,7 +240,7 @@ public class SeamCarver {
                         edgeTo[x][y + 1] = edgeTo[x][y];
                         minYCoordinate = y + 1;
                     }
-                } else if (x == width) {
+                } else if (x == columns) {
                     distTo[x - 1][y + 1] = energy[x - 1][y + 1];
                     if (cost > distTo[x][y] + distTo[x - 1][y + 1]) {
                         cost = distTo[x][y] + distTo[x - 1][y + 1];
@@ -256,14 +263,14 @@ public class SeamCarver {
     // remove horizontal seam from current picture
     public void removeHorizontalSeam(int[] seam) {
         if (seam == null) throw new IllegalArgumentException("The seam object is invalid.");
-        if (this.height == 1)
+        if (this.rows == 1)
             throw new IllegalArgumentException("Can not carve any more horizontal seams; image height is 1 pixel.");
     }
 
     // remove vertical seam from current picture
     public void removeVerticalSeam(int[] seam) {
         if (seam == null) throw new IllegalArgumentException("The seam object is invalid.");
-        if (this.width == 1)
+        if (this.columns == 1)
             throw new IllegalArgumentException("Can not carve any more vertical seams; image width is 1 pixel.");
     }
 
