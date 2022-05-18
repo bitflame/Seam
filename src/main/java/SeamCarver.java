@@ -103,8 +103,10 @@ public class SeamCarver {
 
         for (int y = 0; y < rows; y++) {
             for (int x = 0; x < columns; x++) {
-                distTo[y][x] = energy[y][x];
+                if (y>0) distTo[y][x]=energy[y][x]+distTo[y-1][x-1];
+                else distTo[y][x] = energy[y][x];
                 if (x > 0 && x < columns - 1) {
+
                     distTo[y + 1][x - 1] = energy[y + 1][x - 1] + distTo[y][x];
                     if (pq.keyOf(y + 1) == null) {
                         pq.insert(y + 1, distTo[y + 1][x - 1]);
