@@ -98,44 +98,32 @@ public class SeamCarver {
             }
 // from step 3 of possible progress steps: Your algorithm can traverse this matrix treating some select entries as reachable
 // from (x, y) to calculate where the seam is located. Need to switch to indexed minimum priority queue to update keys or
-// indexes when the next node changes the lowest cost path like 7x3 sample. If totalSum of any given iteration is less
-// than the sum in pq, I need to update pq
+// indexes when the next node changes the lowest cost path like 7x3 sample. pq holds the minimum path for previous iterations
+// cost tracks the min cost of the current iteration
         double cost;
         int minYCoordinate = 0;
         for (int y = 0; y < rows; y++) {
             cost = Double.POSITIVE_INFINITY;
             for (int x = 0; x < columns; x++) {
                 distTo[y][x] = energy[y][x];
+                if (!pq.contains(y)) pq.insert(y, distTo[y][x]);
+                else if (pq.keyOf(y).compareTo(distTo[y][x]) > 0) pq.changeKey(y, distTo[y][x]);
                 if (x > 0 && x < columns - 1) {
                     distTo[y + 1][x - 1] = energy[y + 1][x - 1];
-                    if (pq.keyOf(y).compareTo(distTo[y + 1][x - 1]) > 0) {
-                        pq.changeKey(y, distTo[y + 1][x - 1]);
-                    } // this block is going to replace the following block
-                    if (cost > distTo[y][x] + distTo[y + 1][x - 1]) {
-                        cost = distTo[y][x] + distTo[y + 1][x - 1];
-                        pqTotalCost = cost + pqTotalCost;
+                    if (pq.keyOf(y + 1) == null) pq.insert(y + 1, distTo[y + 1][x - 1]);
+                    if (pq.keyOf(y + 1).compareTo((distTo[y + 1][x - 1]) + (distTo[y][x])) > 0) {
+                        pq.changeKey(y + 1, distTo[y + 1][x - 1]);
                         edgeTo[y + 1][x - 1] = edgeTo[y][x];
-                        minYCoordinate = y + 1;
-                        if (pq.contains(y)) pq.changeKey(y, cost);
-                        pq.insert(y, pqTotalCost);
                     }
                     distTo[y + 1][x] = energy[y + 1][x];
-                    if (cost > distTo[y][x] + distTo[y + 1][x]) {
-                        cost = distTo[y][x] + distTo[y + 1][x];
-                        pqTotalCost = cost + pqTotalCost;
-                        edgeTo[y + 1][x] = edgeTo[y][x];
-                        minYCoordinate = y + 1;
-                        if (pq.contains(y)) pq.changeKey(y, cost);
-                        else pq.insert(y, pqTotalCost);
+                    if (pq.keyOf(y + 1).compareTo(distTo[y + 1][x]) > 0) {
+                        pq.changeKey(y + 1, distTo[y + 1][x]);
+                        edgeTo[y + 1][x - 1] = edgeTo[y][x];
                     }
                     distTo[y + 1][x + 1] = energy[y + 1][x + 1];
-                    if (cost > distTo[y][x] + distTo[y + 1][x + 1]) {
-                        cost = distTo[y][x] + distTo[y + 1][x + 1];
-                        pqTotalCost = cost + pqTotalCost;
-                        edgeTo[y + 1][x + 1] = edgeTo[y][x];
-                        minYCoordinate = y + 1;
-                        if (pq.contains(y)) pq.changeKey(y, cost);
-                        else pq.insert(y, pqTotalCost);
+                    if (pq.keyOf(y + 1).compareTo(distTo[y + 1][x + 1]) > 0) {
+                        pq.changeKey(y + 1, distTo[y + 1][x + 1]);
+                        edgeTo[y + 1][x - 1] = edgeTo[y][x];
                     }
 
                 } else if (x == 0) {
@@ -145,7 +133,8 @@ public class SeamCarver {
                         pqTotalCost = cost + pqTotalCost;
                         edgeTo[y + 1][x] = edgeTo[y][x];
                         minYCoordinate = y + 1;
-                        pq.insert(y, pqTotalCost);
+                        if (pq.contains(y)) pq.changeKey(y, cost);
+                        else pq.insert(y, pqTotalCost);
                     }
                     distTo[y + 1][x + 1] = energy[y + 1][x + 1];
                     if (cost > distTo[y][x] + distTo[y + 1][x + 1]) {
@@ -163,7 +152,8 @@ public class SeamCarver {
                         pqTotalCost = cost + pqTotalCost;
                         edgeTo[y + 1][x - 1] = edgeTo[y][x];
                         minYCoordinate = y + 1;
-                        pq.insert(y, pqTotalCost);
+                        if (pq.contains(y)) pq.changeKey(y, cost);
+                        else pq.insert(y, pqTotalCost);
                     }
                     distTo[y + 1][x] = energy[y + 1][x];
                     if (cost > distTo[y][x] + distTo[y + 1][x]) {
