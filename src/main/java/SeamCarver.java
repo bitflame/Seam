@@ -133,7 +133,6 @@ public class SeamCarver {
                         pqTotalCost += distTo[y + 1][x - 1];
                         edgeTo[y + 1][x - 1] = edgeTo[y][x];
                     }
-
                     if (pq.keyOf(y + 1).compareTo(distTo[y + 1][x]) > 0) {
                         pq.changeKey(y + 1, distTo[y + 1][x]);
                         pqTotalCost += distTo[y + 1][x];
