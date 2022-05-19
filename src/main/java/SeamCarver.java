@@ -100,14 +100,15 @@ public class SeamCarver {
 // from (x, y) to calculate where the seam is located. Need to switch to indexed minimum priority queue to update keys or
 // indexes when the next node changes the lowest cost path like 7x3 sample. pq holds the minimum path for previous iterations
 // cost tracks the min cost of the current iteration
-
         for (int y = 0; y < rows; y++) {
             for (int x = 0; x < columns; x++) {
-                if (y>0) distTo[y][x]=energy[y][x]+distTo[y-1][x-1];
-                else distTo[y][x] = energy[y][x];
+                if (y == 0 || x == 0 || y == rows - 1 || x == columns - 1) distTo[y][x] = energy[y][x];
+                else {
+                    distTo[y][x] = distTo[y - 1][x - 1] + energy[y][x];
+                    distTo[y + 1][x + 1] = distTo[y][x] + energy[y + 1][x + 1];
+                }
                 if (x > 0 && x < columns - 1) {
-
-                    distTo[y + 1][x - 1] = energy[y + 1][x - 1] + distTo[y][x];
+                    // distTo[y + 1][x - 1] = energy[y + 1][x - 1] + distTo[y][x];
                     if (pq.keyOf(y + 1) == null) {
                         pq.insert(y + 1, distTo[y + 1][x - 1]);
                         pqTotalCost += distTo[y + 1][x - 1];
@@ -117,42 +118,41 @@ public class SeamCarver {
                         pqTotalCost += distTo[y + 1][x - 1];
                         edgeTo[y + 1][x - 1] = edgeTo[y][x];
                     }
-                    distTo[y + 1][x] = energy[y + 1][x] + distTo[y][x];
+                    // distTo[y + 1][x] = energy[y + 1][x] + distTo[y][x];
                     if (pq.keyOf(y + 1).compareTo(distTo[y + 1][x]) > 0) {
                         pq.changeKey(y + 1, distTo[y + 1][x]);
                         pqTotalCost += distTo[y + 1][x];
                         edgeTo[y + 1][x - 1] = edgeTo[y][x];
                     }
-                    distTo[y + 1][x + 1] = energy[y + 1][x + 1] + distTo[y][x];
+                    // distTo[y + 1][x + 1] = energy[y + 1][x + 1] + distTo[y][x];
                     if (pq.keyOf(y + 1).compareTo(distTo[y + 1][x + 1]) > 0) {
                         pq.changeKey(y + 1, distTo[y + 1][x + 1]);
                         pqTotalCost += distTo[y + 1][x + 1];
                         edgeTo[y + 1][x - 1] = edgeTo[y][x];
                     }
-
                 } else if (x == 0) {
-                    distTo[y + 1][x] = energy[y + 1][x] + distTo[y][x];
+                    // distTo[y + 1][x] = energy[y + 1][x] + distTo[y][x];
                     if (!pq.contains(y + 1)) pq.insert(y + 1, distTo[y + 1][x]);
                     else if (pq.keyOf(y + 1).compareTo(distTo[y + 1][x]) > 0) {
                         pq.changeKey(y + 1, distTo[y + 1][x]);
                         pqTotalCost += distTo[y + 1][x];
                         edgeTo[y + 1][x] = edgeTo[y][x];
                     }
-                    distTo[y + 1][x + 1] = energy[y + 1][x + 1] + distTo[y][x];
+                    // distTo[y + 1][x + 1] = energy[y + 1][x + 1] + distTo[y][x];
                     if (pq.keyOf(y + 1).compareTo(distTo[y + 1][x + 1]) > 0) {
                         pq.changeKey(y + 1, distTo[y + 1][x + 1]);
                         pqTotalCost += distTo[y + 1][x + 1];
                         edgeTo[y + 1][x + 1] = edgeTo[y][x];
                     }
                 } else if (x == columns) {
-                    distTo[y + 1][x - 1] = energy[y + 1][x - 1] + distTo[y][x];
+                    // distTo[y + 1][x - 1] = energy[y + 1][x - 1] + distTo[y][x];
                     if (pq.keyOf(y + 1) == null) pq.insert(y + 1, distTo[y + 1][x - 1]);
                     else if (pq.keyOf(y + 1).compareTo(distTo[y + 1][x - 1]) > 0) {
                         pq.changeKey(y + 1, distTo[y + 1][x - 1]);
                         pqTotalCost += distTo[y + 1][x - 1];
                         edgeTo[y + 1][x - 1] = edgeTo[y][x];
                     }
-                    distTo[y + 1][x] = energy[y + 1][x] + distTo[y][x];
+                    // distTo[y + 1][x] = energy[y + 1][x] + distTo[y][x];
                     if (pq.keyOf(y + 1).compareTo(distTo[y + 1][x]) > 0) {
                         pq.changeKey(y + 1, distTo[y + 1][x]);
                         pqTotalCost += distTo[y + 1][x];
