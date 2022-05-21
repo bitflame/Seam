@@ -113,7 +113,7 @@ public class SeamCarver {
                         edgeTo[y + 1][x] = x;
                         int previousY = y;
                         int previousX = x;
-                        while (previousY > 0) {
+                        while (pq.keyOf(previousY).compareTo(distTo[previousY][previousX])!=0){
                             pq.changeKey(previousY, distTo[previousY][previousX]);
                             previousX = edgeTo[previousY][previousX];
                             previousY--;
@@ -124,7 +124,7 @@ public class SeamCarver {
                         edgeTo[y + 1][x + 1] = x;
                         int previousY = y;
                         int previousX = x;
-                        while (previousY > 0) {
+                        while (pq.keyOf(previousY).compareTo(distTo[previousY][previousX])!=0){
                             pq.changeKey(previousY, distTo[previousY][previousX]);
                             previousX = edgeTo[previousY][previousX];
                             previousY--;
@@ -137,7 +137,7 @@ public class SeamCarver {
                         edgeTo[y + 1][x - 1] = x;
                         int previousY = y;
                         int previousX = x;
-                        while (previousY > 0) {
+                        while (pq.keyOf(previousY).compareTo(distTo[previousY][previousX])!=0){
                             pq.changeKey(previousY, distTo[previousY][previousX]);
                             previousX = edgeTo[previousY][previousX];
                             previousY--;
@@ -148,7 +148,7 @@ public class SeamCarver {
                         edgeTo[y + 1][x] = x;
                         int previousY = y;
                         int previousX = x;
-                        while (previousY > 0) {
+                        while (pq.keyOf(previousY).compareTo(distTo[previousY][previousX])!=0){
                             pq.changeKey(previousY, distTo[previousY][previousX]);
                             previousX = edgeTo[previousY][previousX];
                             previousY--;
@@ -159,7 +159,7 @@ public class SeamCarver {
                         edgeTo[y + 1][x + 1] = x;
                         int previousY = y;
                         int previousX = x;
-                        while (previousY > 0) {
+                        while (pq.keyOf(previousY).compareTo(distTo[previousY][previousX])!=0){
                             pq.changeKey(previousY, distTo[previousY][previousX]);
                             previousX = edgeTo[previousY][previousX];
                             previousY--;
@@ -172,7 +172,7 @@ public class SeamCarver {
                         edgeTo[y + 1][x - 1] = edgeTo[y][x];
                         int previousY = y;
                         int previousX = x;
-                        while (previousY > 0) {
+                        while (pq.keyOf(previousY).compareTo(distTo[previousY][previousX])!=0){
                             pq.changeKey(previousY, distTo[previousY][previousX]);
                             previousX = edgeTo[previousY][previousX];
                             previousY--;
@@ -183,7 +183,7 @@ public class SeamCarver {
                         edgeTo[y + 1][x] = edgeTo[y][x];
                         int previousY = y;
                         int previousX = x;
-                        while (previousY > 0) {
+                        while (pq.keyOf(previousY).compareTo(distTo[previousY][previousX])!=0){
                             pq.changeKey(previousY, distTo[previousY][previousX]);
                             previousX = edgeTo[previousY][previousX];
                             previousY--;
