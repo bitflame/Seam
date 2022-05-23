@@ -95,103 +95,64 @@ public class SeamCarver {
                 distTo[i][j] = Double.POSITIVE_INFINITY;
             }
         distTo[0][0] = energy[0][0];
+        double minx = Double.POSITIVE_INFINITY;
         for (int y = 0; y < rows - 1; y++) {
             for (int x = 0; x < columns; x++) {
                 if (y == 0) {
                     distTo[y][x] = energy[y][x];
-                    if (!pq.contains(y)){
+                    if (!pq.contains(y)) {
                         pq.insert(y, distTo[y][x]);
-                        edgeTo[y][x]=x;
+                        edgeTo[y][x] = x;
                     }
                 }
                 distTo[y + 1][x] = Math.min(energy[y + 1][x] + distTo[y][x], distTo[y + 1][x]);
                 if (x < columns - 1)
                     distTo[y + 1][x + 1] = Math.min(distTo[y + 1][x + 1], distTo[y][x] + energy[y + 1][x + 1]);
                 if (x == 0) {
-                    edgeTo[y + 1][x] = x - 1;
-                    if (!pq.contains(y + 1)) {
-                        pq.insert(y + 1, distTo[y + 1][x]);
+                    if (minx > distTo[y + 1][x]) {
+                        minx = distTo[y + 1][x];
                         edgeTo[y + 1][x] = x;
-                    } else if (pq.keyOf(y + 1).compareTo(distTo[y + 1][x]) > 0) {
-                        pq.changeKey(y + 1, distTo[y + 1][x]);
-                        edgeTo[y + 1][x] = x;
-                        int previousY = y;
-                        int previousX = x;
-                        while (pq.keyOf(previousY).compareTo(distTo[previousY][previousX]) != 0) {
-                            pq.changeKey(previousY, distTo[previousY][previousX]);
-                            previousX = edgeTo[previousY][previousX];
-                            previousY--;
-                        }
                     }
-                    if (pq.keyOf(y + 1).compareTo(distTo[y + 1][x + 1]) > 0) {
-                        pq.changeKey(y + 1, distTo[y + 1][x + 1]);
-                        edgeTo[y + 1][x + 1] = x;
-                        int previousY = y;
-                        int previousX = x;
-                        while (pq.keyOf(previousY).compareTo(distTo[previousY][previousX]) != 0) {
-                            pq.changeKey(previousY, distTo[previousY][previousX]);
-                            previousX = edgeTo[previousY][previousX];
-                            previousY--;
-                        }
+                    if (minx > distTo[y + 1][x + 1]) {
+                        minx = distTo[y + 1][x + 1];
+                        edgeTo[y + 1][x + 1] = x + 1;
+                    }
+                    if (!pq.contains(y + 1)) {
+                        pq.insert(y + 1, minx);
+                    } else if (pq.keyOf(y + 1).compareTo(minx) > 0) {
+                        pq.changeKey(y + 1, minx);
                     }
                 } else if (x > 0 && x < columns - 1) {
-                    edgeTo[y + 1][x] = x - 1;
-                    if (pq.keyOf(y + 1).compareTo((distTo[y + 1][x - 1])) > 0) {
-                        pq.changeKey(y + 1, distTo[y + 1][x - 1]);
-                        edgeTo[y + 1][x - 1] = x;
-                        int previousY = y;
-                        int previousX = x;
-                        while (pq.keyOf(previousY).compareTo(distTo[previousY][previousX]) != 0) {
-                            pq.changeKey(previousY, distTo[previousY][previousX]);
-                            previousX = edgeTo[previousY][previousX];
-                            previousY--;
-                        }
+                    if (minx > distTo[y + 1][x - 1]) {
+                        minx = distTo[y + 1][x - 1];
+                        edgeTo[y + 1][x] = x - 1;
                     }
-                    if (pq.keyOf(y + 1).compareTo(distTo[y + 1][x]) > 0) {
-                        pq.changeKey(y + 1, distTo[y + 1][x]);
+                    if (minx > distTo[y + 1][x]) {
+                        minx = distTo[y + 1][x];
                         edgeTo[y + 1][x] = x;
-                        int previousY = y;
-                        int previousX = x;
-                        while (pq.keyOf(previousY).compareTo(distTo[previousY][previousX]) != 0) {
-                            pq.changeKey(previousY, distTo[previousY][previousX]);
-                            previousX = edgeTo[previousY][previousX];
-                            previousY--;
-                        }
                     }
-                    if (pq.keyOf(y + 1).compareTo(distTo[y + 1][x + 1]) > 0) {
-                        pq.changeKey(y + 1, distTo[y + 1][x + 1]);
-                        edgeTo[y + 1][x + 1] = x;
-                        int previousY = y;
-                        int previousX = x;
-                        while (pq.keyOf(previousY).compareTo(distTo[previousY][previousX]) != 0) {
-                            pq.changeKey(previousY, distTo[previousY][previousX]);
-                            previousX = edgeTo[previousY][previousX];
-                            previousY--;
-                        }
+                    if (minx > distTo[y + 1][x + 1]) {
+                        minx = distTo[y + 1][x + 1];
+                        edgeTo[y + 1][x + 1] = x + 1;
                     }
-                } else if (x == columns) {
-                    edgeTo[y + 1][x] = x - 1;
-                    if (pq.keyOf(y + 1).compareTo(distTo[y + 1][x - 1]) > 0) {
-                        pq.changeKey(y + 1, distTo[y + 1][x - 1]);
-                        edgeTo[y + 1][x - 1] = edgeTo[y][x];
-                        int previousY = y;
-                        int previousX = x;
-                        while (pq.keyOf(previousY).compareTo(distTo[previousY][previousX]) != 0) {
-                            pq.changeKey(previousY, distTo[previousY][previousX]);
-                            previousX = edgeTo[previousY][previousX];
-                            previousY--;
-                        }
+                    if (!pq.contains(y + 1)) {
+                        pq.insert(y + 1, minx);
+                    } else if (pq.keyOf(y + 1).compareTo(minx) > 0) {
+                        pq.changeKey(y + 1, minx);
                     }
-                    if (pq.keyOf(y + 1).compareTo(distTo[y + 1][x]) > 0) {
-                        pq.changeKey(y + 1, distTo[y + 1][x]);
-                        edgeTo[y + 1][x] = edgeTo[y][x];
-                        int previousY = y;
-                        int previousX = x;
-                        while (pq.keyOf(previousY).compareTo(distTo[previousY][previousX]) != 0) {
-                            pq.changeKey(previousY, distTo[previousY][previousX]);
-                            previousX = edgeTo[previousY][previousX];
-                            previousY--;
-                        }
+                } else {
+                    if (minx > distTo[y + 1][x - 1]) {
+                        minx = distTo[y + 1][x - 1];
+                        edgeTo[y + 1][x] = x - 1;
+                    }
+                    if (minx > distTo[y + 1][x]) {
+                        minx = distTo[y + 1][x];
+                        edgeTo[y + 1][x] = x;
+                    }
+                    if (!pq.contains(y + 1)) {
+                        pq.insert(y + 1, minx);
+                    } else if (pq.keyOf(y + 1).compareTo(minx) > 0) {
+                        pq.changeKey(y + 1, minx);
                     }
                 }
             }
