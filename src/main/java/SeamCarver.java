@@ -123,7 +123,7 @@ public class SeamCarver {
                         pq.decreaseKey(y + 1, minx);
                         int temp = y;
                         while (pq.keyOf(temp).compareTo(distTo[temp][x]) != 0) {
-                            pq.changeKey(temp, distTo[temp][x]);
+                            pq.decreaseKey(temp, distTo[temp][x]);
                             temp--;
                         }
                     }
@@ -145,7 +145,7 @@ public class SeamCarver {
                         pq.decreaseKey(y + 1, minx);
                         int temp = y;
                         while (pq.keyOf(temp).compareTo(distTo[temp][x]) != 0) {
-                            pq.changeKey(temp, distTo[temp][x]);
+                            pq.decreaseKey(temp, distTo[temp][x]);
                             temp--;
                         }
                     }
@@ -163,7 +163,7 @@ public class SeamCarver {
                         pq.decreaseKey(y + 1, minx);
                         int temp = y;
                         while (pq.keyOf(temp).compareTo(distTo[temp][x]) != 0) {
-                            pq.changeKey(temp, distTo[temp][x]);
+                            pq.decreaseKey(temp, distTo[temp][x]);
                             temp--;
                         }
                     }
