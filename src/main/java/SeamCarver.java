@@ -93,8 +93,10 @@ public class SeamCarver {
                 // infinity value in double
                 energy[i][j] = energy(j, i);
                 distTo[i][j] = Double.POSITIVE_INFINITY;
+                edgeTo[i][j] = j - 1;
             }
         distTo[0][0] = energy[0][0];
+        edgeTo[0][0] = 0;
         for (int y = 0; y < rows - 1; y++) {
             Double minEnergy = Double.POSITIVE_INFINITY;
             int minX = Integer.MIN_VALUE;
@@ -106,10 +108,9 @@ public class SeamCarver {
                         edgeTo[y][x] = x;
                     }
                 }
-                distTo[y + 1][x] = Math.min(energy[y + 1][x] + distTo[y][x], distTo[y + 1][x]);
-                if (x < columns - 1)
-                    distTo[y + 1][x + 1] = Math.min(distTo[y + 1][x + 1], distTo[y][x] + energy[y + 1][x + 1]);
                 if (x == 0) {
+                    distTo[y + 1][x] = Math.min(energy[y + 1][x] + distTo[y][x], distTo[y + 1][x]);
+                    distTo[y + 1][x + 1] = Math.min(distTo[y + 1][x + 1], distTo[y][x] + energy[y + 1][x + 1]);
                     if (minEnergy > distTo[y + 1][x]) {
                         minEnergy = distTo[y + 1][x];
                         minX = x;
@@ -119,8 +120,11 @@ public class SeamCarver {
                         minEnergy = distTo[y + 1][x + 1];
                         minX = x + 1;
                         edgeTo[y + 1][x + 1] = x;
-                    } else edgeTo[y + 1][x] = x;
+                    }
                 } else if (x > 0 && x < columns - 1) {
+                    distTo[y + 1][x] = Math.min(energy[y + 1][x] + distTo[y][x], distTo[y + 1][x]);
+                    distTo[y + 1][x + 1] = Math.min(distTo[y + 1][x + 1], distTo[y][x] + energy[y + 1][x + 1]);
+                    distTo[y + 1][x - 1] = Math.min(distTo[y + 1][x - 1], distTo[y][x] + energy[y + 1][x - 1]);
                     if (minEnergy > distTo[y + 1][x - 1]) {
                         minEnergy = distTo[y + 1][x - 1];
                         minX = x - 1;
@@ -135,8 +139,10 @@ public class SeamCarver {
                         minEnergy = distTo[y + 1][x + 1];
                         minX = x + 1;
                         edgeTo[y + 1][x + 1] = x;
-                    } else edgeTo[y + 1][x] = x - 1;
+                    }
                 } else {
+                    distTo[y + 1][x] = Math.min(energy[y + 1][x] + distTo[y][x], distTo[y + 1][x]);
+                    distTo[y + 1][x - 1] = Math.min(distTo[y + 1][x - 1], distTo[y][x] + energy[y + 1][x - 1]);
                     if (minEnergy > distTo[y + 1][x - 1]) {
                         minEnergy = distTo[y + 1][x - 1];
                         minX = x - 1;
@@ -146,22 +152,18 @@ public class SeamCarver {
                         minEnergy = distTo[y + 1][x];
                         minX = x;
                         edgeTo[y + 1][x] = x;
-                    } else edgeTo[y + 1][x] = x - 1;
+                    }
                 }
             }
             pq.insert(y + 1, minX);
             int tempY = y;
             int tempX = edgeTo[y + 1][minX];
-            while (pq.keyOf(tempY).compareTo(tempX) != 0) {
+            while (tempY >= 0 && pq.keyOf(tempY).compareTo(tempX) != 0) {
                 pq.changeKey(tempY, tempX);
                 tempX = edgeTo[tempY][tempX];
                 tempY--;
             }
-        }
-        double item = 0;
-        for (int i = 0; i < horizontalSeam.length; i++) {
-            horizontalSeam[i] = pq.delMin();
-        }
+        } // todo -- just add the values to the integer [] rather than using the priority queue
         return horizontalSeam;
     }
 
