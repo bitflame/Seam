@@ -149,12 +149,14 @@ public class SeamCarver {
                     }
 
                 }
-                pq.insert(y + 1, minX);
-                int temp = y;
-                while (pq.keyOf(temp).compareTo(x) != 0) {
-                    pq.decreaseKey(temp, x);
-                    temp--;
-                }
+            }
+            pq.insert(y + 1, minX);
+            int tempY = y;
+            int tempX = edgeTo[y+1][minX];
+            while (pq.keyOf(tempY).compareTo(tempX) != 0) {
+                pq.decreaseKey(tempY, tempX);
+                tempX = edgeTo[tempY][tempX];
+                tempY--;
             }
         }
         double item = 0;
