@@ -96,12 +96,13 @@ public class SeamCarver {
             }
         distTo[0][0] = energy[0][0];
         for (int y = 0; y < rows - 1; y++) {
-            double minx = Double.POSITIVE_INFINITY;
+            Double minEnergy = Double.POSITIVE_INFINITY;
+            int minX = Integer.MIN_VALUE;
             for (int x = 0; x < columns; x++) {
                 if (y == 0) {
                     distTo[y][x] = energy[y][x];
                     if (!pq.contains(y)) {
-                        pq.insert(y, distTo[y][x]);
+                        pq.insert(y, x);
                         edgeTo[y][x] = x;
                     }
                 }
@@ -109,64 +110,50 @@ public class SeamCarver {
                 if (x < columns - 1)
                     distTo[y + 1][x + 1] = Math.min(distTo[y + 1][x + 1], distTo[y][x] + energy[y + 1][x + 1]);
                 if (x == 0) {
-                    if (minx > distTo[y + 1][x]) {
-                        minx = distTo[y + 1][x];
+                    if (minEnergy > distTo[y + 1][x]) {
+                        minEnergy = distTo[y + 1][x];
+                        minX = x;
                         edgeTo[y + 1][x] = x;
                     }
-                    if (minx > distTo[y + 1][x + 1]) {
-                        minx = distTo[y + 1][x + 1];
+                    if (minEnergy > distTo[y + 1][x + 1]) {
+                        minEnergy = distTo[y + 1][x + 1];
+                        minX = x + 1;
                         edgeTo[y + 1][x + 1] = x;
                     }
-                    if (!pq.contains(y + 1)) pq.insert(y + 1, minx);
-                    else if (pq.keyOf(y + 1).compareTo(minx) > 0) {
-                        // todo - check to see if the following block works for updating edgeTo, and if so, update the rest of the blocks with it
-                        pq.decreaseKey(y + 1, minx);
-                        int temp = y;
-                        while (pq.keyOf(temp).compareTo(distTo[temp][x]) != 0) {
-                            pq.decreaseKey(temp, distTo[temp][x]);
-                            temp--;
-                        }
-                    }
-
                 } else if (x > 0 && x < columns - 1) {
-                    if (minx > distTo[y + 1][x - 1]) {
-                        minx = distTo[y + 1][x - 1];
+                    if (minEnergy > distTo[y + 1][x - 1]) {
+                        minEnergy = distTo[y + 1][x - 1];
+                        minX = x - 1;
+                        edgeTo[y + 1][x - 1] = x;
+                    }
+                    if (minEnergy > distTo[y + 1][x]) {
+                        minEnergy = distTo[y + 1][x];
+                        minX = x;
                         edgeTo[y + 1][x] = x;
                     }
-                    if (minx > distTo[y + 1][x]) {
-                        minx = distTo[y + 1][x];
-                        edgeTo[y + 1][x] = x;
-                    }
-                    if (minx > distTo[y + 1][x + 1]) {
-                        minx = distTo[y + 1][x + 1];
+                    if (minEnergy > distTo[y + 1][x + 1]) {
+                        minEnergy = distTo[y + 1][x + 1];
+                        minX = x + 1;
                         edgeTo[y + 1][x + 1] = x;
                     }
-                    if (pq.keyOf(y + 1).compareTo(minx) > 0) {
-                        pq.decreaseKey(y + 1, minx);
-                        int temp = y;
-                        while (pq.keyOf(temp).compareTo(distTo[temp][x]) != 0) {
-                            pq.decreaseKey(temp, distTo[temp][x]);
-                            temp--;
-                        }
+                } else {
+                    if (minEnergy > distTo[y + 1][x - 1]) {
+                        minEnergy = distTo[y + 1][x - 1];
+                        minX = x - 1;
+                        edgeTo[y + 1][x - 1] = x;
+                    }
+                    if (minEnergy > distTo[y + 1][x]) {
+                        minEnergy = distTo[y + 1][x];
+                        minX = x;
+                        edgeTo[y + 1][x] = x;
                     }
 
-                } else {
-                    if (minx > distTo[y + 1][x - 1]) {
-                        minx = distTo[y + 1][x - 1];
-                        edgeTo[y + 1][x] = x;
-                    }
-                    if (minx > distTo[y + 1][x]) {
-                        minx = distTo[y + 1][x];
-                        edgeTo[y + 1][x] = x;
-                    }
-                    if (pq.keyOf(y + 1).compareTo(minx) > 0) {
-                        pq.decreaseKey(y + 1, minx);
-                        int temp = y;
-                        while (pq.keyOf(temp).compareTo(distTo[temp][x]) != 0) {
-                            pq.decreaseKey(temp, distTo[temp][x]);
-                            temp--;
-                        }
-                    }
+                }
+                pq.insert(y + 1, minX);
+                int temp = y;
+                while (pq.keyOf(temp).compareTo(x) != 0) {
+                    pq.decreaseKey(temp, x);
+                    temp--;
                 }
             }
         }
