@@ -119,7 +119,7 @@ public class SeamCarver {
                         minEnergy = distTo[y + 1][x + 1];
                         minX = x + 1;
                         edgeTo[y + 1][x + 1] = x;
-                    }
+                    } else edgeTo[y + 1][x] = x;
                 } else if (x > 0 && x < columns - 1) {
                     if (minEnergy > distTo[y + 1][x - 1]) {
                         minEnergy = distTo[y + 1][x - 1];
@@ -135,7 +135,7 @@ public class SeamCarver {
                         minEnergy = distTo[y + 1][x + 1];
                         minX = x + 1;
                         edgeTo[y + 1][x + 1] = x;
-                    }
+                    } else edgeTo[y + 1][x] = x - 1;
                 } else {
                     if (minEnergy > distTo[y + 1][x - 1]) {
                         minEnergy = distTo[y + 1][x - 1];
@@ -146,15 +146,14 @@ public class SeamCarver {
                         minEnergy = distTo[y + 1][x];
                         minX = x;
                         edgeTo[y + 1][x] = x;
-                    }
-
+                    } else edgeTo[y + 1][x] = x - 1;
                 }
             }
             pq.insert(y + 1, minX);
             int tempY = y;
-            int tempX = edgeTo[y+1][minX];
+            int tempX = edgeTo[y + 1][minX];
             while (pq.keyOf(tempY).compareTo(tempX) != 0) {
-                pq.decreaseKey(tempY, tempX);
+                pq.changeKey(tempY, tempX);
                 tempX = edgeTo[tempY][tempX];
                 tempY--;
             }
