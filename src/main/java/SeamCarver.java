@@ -176,8 +176,6 @@ public class SeamCarver {
         double[][] distTo = new double[rows][columns];
         int[][] edgeTo = new int[rows][columns];
         int[] verticalSeam = new int[rows];
-        IndexMinPQ pq = new IndexMinPQ(rows);
-
         for (int i = 0; i < rows; i++)
             for (int j = 0; j < columns; j++) {
                 // infinity value in double
@@ -193,11 +191,6 @@ public class SeamCarver {
             for (int x = 0; x < columns; x++) {
                 if (y == 0) {
                     distTo[y][x] = energy[y][x];
-                    if (!pq.contains(y)) {
-                        pq.insert(y, x);
-                        verticalSeam[y] = x;
-                        edgeTo[y][x] = x;
-                    }
                 }
                 if (x == 0) {
                     distTo[y + 1][x] = Math.min(energy[y + 1][x] + distTo[y][x], distTo[y + 1][x]);
@@ -246,12 +239,10 @@ public class SeamCarver {
                     }
                 }
             }
-            pq.insert(y + 1, minX);
             verticalSeam[y + 1] = minX;
             int tempY = y;
             int tempX = edgeTo[y + 1][minX];
-            while (tempY >= 0 && pq.keyOf(tempY).compareTo(tempX) != 0) {
-                pq.changeKey(tempY, tempX);
+            while (tempY >= 0) {
                 verticalSeam[tempY] = tempX;
                 tempX = edgeTo[tempY][tempX];
                 tempY--;
@@ -288,12 +279,11 @@ public class SeamCarver {
         // 255, 203, 51 color values for 2,0
         double x = Math.sqrt(Math.pow(255, 2) + Math.pow(203, 2) + Math.pow(51, 2));
         System.out.printf("\n");
-        for (double d : seamCarver.findVerticalSeam()) {
-            System.out.printf("%9.2f", d);
-        }
-        System.out.printf("%f\n", x);
-        for (double d : seamCarver.findHorizontalSeam()) {
-            System.out.printf("%9.2f", d);
+//        for (double d : seamCarver.findVerticalSeam()) {
+//            System.out.printf("%9.2f", d);
+//        }
+        for(int i: seamCarver.findVerticalSeam()){
+            System.out.printf("%d ",i);
         }
     }
 
