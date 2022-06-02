@@ -105,6 +105,7 @@ public class SeamCarver {
                     distTo[y][x] = energy[y][x];
                     if (!pq.contains(y)) {
                         pq.insert(y, x);
+                        horizontalSeam[y] = x;
                         edgeTo[y][x] = x;
                     }
                 }
@@ -156,10 +157,12 @@ public class SeamCarver {
                 }
             }
             pq.insert(y + 1, minX);
+            horizontalSeam[y + 1] = minX;
             int tempY = y;
             int tempX = edgeTo[y + 1][minX];
             while (tempY >= 0 && pq.keyOf(tempY).compareTo(tempX) != 0) {
                 pq.changeKey(tempY, tempX);
+                horizontalSeam[tempY] = tempX;
                 tempX = edgeTo[tempY][tempX];
                 tempY--;
             }
@@ -173,77 +176,87 @@ public class SeamCarver {
         double[][] distTo = new double[rows][columns];
         int[][] edgeTo = new int[rows][columns];
         int[] verticalSeam = new int[rows];
-        /* I really don't see why I need this now
-        for(int i=0; i<columns; i++)
-            for(int j=0; j<rows; j++){
-                // infinity value in double
-                energy[i][j]=Double.POSITIVE_INFINITY;
-            }
-        */
-        int id = 0;
+        IndexMinPQ pq = new IndexMinPQ(rows);
+
         for (int i = 0; i < rows; i++)
             for (int j = 0; j < columns; j++) {
                 // infinity value in double
                 energy[i][j] = energy(j, i);
-                edgeTo[i][j] = id;
-                id++;
+                distTo[i][j] = Double.POSITIVE_INFINITY;
+                edgeTo[i][j] = j - 1;
             }
-// from step 3 of possible progress steps: Your algorithm can traverse this matrix treating some select
-// entries as reachable from (x, y) to calculate where the seam is located. Reachable are (x-1, y+1), (x, y+1), (x+1, y+1)
-// for each row keep the minimum of energy(x, y) + the energy of a reachable. i.e. only add the value of a cell to the
-// horizontalSeam [] if its value is less than a previous cell
-        double cost;
-        int minYCoordinate = 0;
-
-        for (int x = 0; x < columns; x++) {
-            for (int y = 0; y < rows - 1; y++) {
-                cost = Double.POSITIVE_INFINITY;
-                distTo[x][y] = energy[x][y];
-                if (x > 0 && y < columns - 1) {
-                    distTo[x - 1][y + 1] = energy[x - 1][y + 1];
-                    if (cost > distTo[x][y] + distTo[x - 1][y + 1]) {
-                        cost = distTo[x][y] + distTo[x - 1][y + 1];
-                        edgeTo[x - 1][y + 1] = edgeTo[x][y];
-                        minYCoordinate = y + 1;
-                    }
-                    // if it costs less to go to the next node from this path, then update edgeTo:
-                    // edgeTo[x - 1][y + 1] = edgeTo[x][y];
-                    distTo[x + 1][y + 1] = energy[x + 1][y + 1];
-                    if (cost > distTo[x][y] + distTo[x + 1][y + 1]) {
-                        cost = distTo[x][y] + distTo[x + 1][y + 1];
-                        edgeTo[x + 1][y + 1] = edgeTo[x][y];
-                        minYCoordinate = y + 1;
-                    }
-                } else if (x == 0 && y < columns - 1) {
-                    distTo[x + 1][y + 1] = energy[x + 1][y + 1];
-                    if (cost > distTo[x][y] + distTo[x + 1][y + 1]) {
-                        cost = distTo[x][y] + distTo[x + 1][y + 1];
-                        edgeTo[x + 1][y + 1] = edgeTo[x][y];
-                        minYCoordinate = y + 1;
-                    }
-                    distTo[x][y + 1] = energy[x][y + 1];
-                    if (cost > distTo[x][y] + distTo[x][y + 1]) {
-                        cost = distTo[x][y] + distTo[x][y + 1];
-                        edgeTo[x][y + 1] = edgeTo[x][y];
-                        minYCoordinate = y + 1;
-                    }
-                } else if (x == columns) {
-                    distTo[x - 1][y + 1] = energy[x - 1][y + 1];
-                    if (cost > distTo[x][y] + distTo[x - 1][y + 1]) {
-                        cost = distTo[x][y] + distTo[x - 1][y + 1];
-                        edgeTo[x - 1][y + 1] = edgeTo[x][y];
-                        minYCoordinate = y + 1;
-                    }
-                    distTo[x][y + 1] = energy[x][y + 1];
-                    if (cost > distTo[x][y] + distTo[x][y + 1]) {
-                        cost = distTo[x][y] + distTo[x][y + 1];
-                        edgeTo[x][y + 1] = edgeTo[x][y];
-                        minYCoordinate = y + 1;
+        distTo[0][0] = energy[0][0];
+        edgeTo[0][0] = 0;
+        for (int y = 0; y < rows - 1; y++) {
+            Double minEnergy = Double.POSITIVE_INFINITY;
+            int minX = Integer.MIN_VALUE;
+            for (int x = 0; x < columns; x++) {
+                if (y == 0) {
+                    distTo[y][x] = energy[y][x];
+                    if (!pq.contains(y)) {
+                        pq.insert(y, x);
+                        verticalSeam[y] = x;
+                        edgeTo[y][x] = x;
                     }
                 }
-                verticalSeam[x] = minYCoordinate;
+                if (x == 0) {
+                    distTo[y + 1][x] = Math.min(energy[y + 1][x] + distTo[y][x], distTo[y + 1][x]);
+                    distTo[y + 1][x + 1] = Math.min(distTo[y + 1][x + 1], distTo[y][x] + energy[y + 1][x + 1]);
+                    if (minEnergy > distTo[y + 1][x]) {
+                        minEnergy = distTo[y + 1][x];
+                        minX = x;
+                        edgeTo[y + 1][x] = x;
+                    }
+                    if (minEnergy > distTo[y + 1][x + 1]) {
+                        minEnergy = distTo[y + 1][x + 1];
+                        minX = x + 1;
+                        edgeTo[y + 1][x + 1] = x;
+                    }
+                } else if (x > 0 && x < columns - 1) {
+                    distTo[y + 1][x] = Math.min(energy[y + 1][x] + distTo[y][x], distTo[y + 1][x]);
+                    distTo[y + 1][x + 1] = Math.min(distTo[y + 1][x + 1], distTo[y][x] + energy[y + 1][x + 1]);
+                    distTo[y + 1][x - 1] = Math.min(distTo[y + 1][x - 1], distTo[y][x] + energy[y + 1][x - 1]);
+                    if (minEnergy > distTo[y + 1][x - 1]) {
+                        minEnergy = distTo[y + 1][x - 1];
+                        minX = x - 1;
+                        edgeTo[y + 1][x - 1] = x;
+                    }
+                    if (minEnergy > distTo[y + 1][x]) {
+                        minEnergy = distTo[y + 1][x];
+                        minX = x;
+                        edgeTo[y + 1][x] = x;
+                    }
+                    if (minEnergy > distTo[y + 1][x + 1]) {
+                        minEnergy = distTo[y + 1][x + 1];
+                        minX = x + 1;
+                        edgeTo[y + 1][x + 1] = x;
+                    }
+                } else {
+                    distTo[y + 1][x] = Math.min(energy[y + 1][x] + distTo[y][x], distTo[y + 1][x]);
+                    distTo[y + 1][x - 1] = Math.min(distTo[y + 1][x - 1], distTo[y][x] + energy[y + 1][x - 1]);
+                    if (minEnergy > distTo[y + 1][x - 1]) {
+                        minEnergy = distTo[y + 1][x - 1];
+                        minX = x - 1;
+                        edgeTo[y + 1][x - 1] = x;
+                    }
+                    if (minEnergy > distTo[y + 1][x]) {
+                        minEnergy = distTo[y + 1][x];
+                        minX = x;
+                        edgeTo[y + 1][x] = x;
+                    }
+                }
             }
-        }
+            pq.insert(y + 1, minX);
+            verticalSeam[y + 1] = minX;
+            int tempY = y;
+            int tempX = edgeTo[y + 1][minX];
+            while (tempY >= 0 && pq.keyOf(tempY).compareTo(tempX) != 0) {
+                pq.changeKey(tempY, tempX);
+                verticalSeam[tempY] = tempX;
+                tempX = edgeTo[tempY][tempX];
+                tempY--;
+            }
+        } // todo -- just add the values to the integer [] rather than using the priority queue
         return verticalSeam;
     }
 
@@ -274,12 +287,12 @@ public class SeamCarver {
         System.out.printf("The energy level for pixel (Column %d, Row %d) is: %f\n", 1, 1, seamCarver.energy(1, 1));
         // 255, 203, 51 color values for 2,0
         double x = Math.sqrt(Math.pow(255, 2) + Math.pow(203, 2) + Math.pow(51, 2));
-        System.out.printf("%f\n", x);
-        for (double d : seamCarver.findHorizontalSeam()) {
-            System.out.printf("%9.2f", d);
-        }
         System.out.printf("\n");
         for (double d : seamCarver.findVerticalSeam()) {
+            System.out.printf("%9.2f", d);
+        }
+        System.out.printf("%f\n", x);
+        for (double d : seamCarver.findHorizontalSeam()) {
             System.out.printf("%9.2f", d);
         }
     }
